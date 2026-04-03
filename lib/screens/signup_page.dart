@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'signup_page.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignupPage> createState() => _SignupPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignupPageState extends State<SignupPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final auth = AuthService();
@@ -22,13 +21,14 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> handleLogin() async {
+  Future<void> handleSignup() async {
     setState(() => isLoading = true);
     try {
-      await auth.signIn(
+      await auth.signUp(
         emailController.text.trim(),
         passwordController.text,
       );
+      // AuthWrapper automatically navigates to HomePage on success
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
+      appBar: AppBar(title: const Text("Sign Up")),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -62,16 +62,13 @@ class _LoginPageState extends State<LoginPage> {
             isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
-                    onPressed: handleLogin,
-                    child: const Text("Login"),
+                    onPressed: handleSignup,
+                    child: const Text("Sign Up"),
                   ),
             const SizedBox(height: 10),
             TextButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SignupPage()),
-              ),
-              child: const Text("Don't have an account? Sign up"),
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Already have an account? Log in"),
             ),
           ],
         ),
