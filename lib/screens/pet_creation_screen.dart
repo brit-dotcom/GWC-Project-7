@@ -24,7 +24,7 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
   bool isLoading = false;
 
   // All available pet types — add more here later if needed!
-  final List<String> petTypes = ['cat', 'dog', 'rabbit', 'hamster'];
+  final List<String> petTypes = ['cat', 'bunny', 'deer'];
 
   @override
   void dispose() {
