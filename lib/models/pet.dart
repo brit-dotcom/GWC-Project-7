@@ -6,6 +6,7 @@ class Pet {
   final int happiness;
   final int energy;
   final int health;
+  final bool isAsleep; // ← new
 
   Pet({
     required this.id,
@@ -15,9 +16,9 @@ class Pet {
     required this.happiness,
     required this.energy,
     required this.health,
+    this.isAsleep = false, // defaults to awake
   });
 
-  // Converts Firestore document → Pet object
   factory Pet.fromMap(String id, Map<String, dynamic> data) {
     return Pet(
       id: id,
@@ -27,10 +28,10 @@ class Pet {
       happiness: data['happiness'] ?? 100,
       energy: data['energy'] ?? 100,
       health: data['health'] ?? 100,
+      isAsleep: data['isAsleep'] ?? false, // ← new
     );
   }
 
-  // Converts Pet object → Firestore document
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -39,6 +40,7 @@ class Pet {
       'happiness': happiness,
       'energy': energy,
       'health': health,
+      'isAsleep': isAsleep, // ← new
     };
   }
 }

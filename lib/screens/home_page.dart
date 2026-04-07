@@ -63,7 +63,7 @@ class _HomePageState extends State<HomePage> {
     final screens = [
       PetScreen(pet: pet!, onAction: refreshPet),
       ShopScreen(pet: pet!, onPurchase: refreshPet),
-      GamesScreen(onCoinsEarned: refreshPet),
+      //GamesScreen(onCoinsEarned: refreshPet),
       StudyScreen(onSessionComplete: refreshPet),
     ];
 
