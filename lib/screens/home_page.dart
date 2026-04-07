@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/pet_service.dart';
+import '../services/decay_service.dart'; // ← new import
 import '../models/pet.dart';
 import 'pet_screen.dart';
 import 'shop_screen.dart';
@@ -15,33 +16,46 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Tracks which tab is currently selected (0=Home, 1=Shop, 2=Games, 3=Study)
   int currentIndex = 0;
-
   final petService = PetService();
+  final decayService = DecayService(); // ← new
   Pet? pet;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // Load pet once when the app opens — all screens share this pet data
-    loadPet();
+    loadPetWithDecay(); // ← changed from loadPet()
   }
 
-  Future<void> loadPet() async {
+  // Loads the pet then immediately applies any time decay
+  // before showing the screen — so stats are always current
+  Future<void> loadPetWithDecay() async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
+
+    // Step 1: fetch the pet from Firestore
     final fetchedPet = await petService.getPet(userId);
-    setState(() {
-      pet = fetchedPet;
-      isLoading = false;
-    });
+
+    if (fetchedPet != null) {
+      // Step 2: calculate and apply decay based on time away
+      await decayService.applyDecay(fetchedPet);
+
+      // Step 3: fetch again so UI shows the post-decay values
+      final updatedPet = await petService.getPet(userId);
+      setState(() {
+        pet = updatedPet;
+        isLoading = false;
+      });
+    } else {
+      setState(() => isLoading = false);
+    }
   }
 
-  // Called by any screen that changes pet stats, so the home
-  // screen always shows fresh data without a full reload
+  // Refreshes pet data — called by child screens after any action
   Future<void> refreshPet() async {
-    await loadPet();
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final updatedPet = await petService.getPet(userId);
+    setState(() => pet = updatedPet);
   }
 
   @override
@@ -58,23 +72,18 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    // The four screens — passing pet + refreshPet so they can
-    // read stats and trigger a refresh after any changes
     final screens = [
       PetScreen(pet: pet!, onAction: refreshPet),
       ShopScreen(pet: pet!, onPurchase: refreshPet),
-      //GamesScreen(onCoinsEarned: refreshPet),
+      GamesScreen(onCoinsEarned: refreshPet),
       StudyScreen(onSessionComplete: refreshPet),
     ];
 
     return Scaffold(
-      // Show whichever screen matches the selected tab
       body: screens[currentIndex],
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) => setState(() => currentIndex = index),
-        // Needed so all 4 labels show — default only shows 3
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
