@@ -19,7 +19,7 @@ class DecayService {
 
     // Calculate how many hours have passed since last session
     final now = DateTime.now();
-    final hoursAway = now.difference(pet.lastUpdated).inSeconds / 3600;
+    var hoursAway = now.difference(pet.lastUpdated).inSeconds / 3600;
 
     // If less than a minute has passed, don't bother updating
     if (hoursAway < 0.016) return;

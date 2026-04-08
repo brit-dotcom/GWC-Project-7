@@ -1,11 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/pet.dart';
+import '../services/pet_service.dart';
 
-class PetScreen extends StatelessWidget {
+// Changed to StatefulWidget so we can show a loading state
+// while Firestore is being updated
+class PetScreen extends StatefulWidget {
   final Pet pet;
   final Future<void> Function() onAction;
 
   const PetScreen({super.key, required this.pet, required this.onAction});
+
+  @override
+  State<PetScreen> createState() => _PetScreenState();
+}
+
+class _PetScreenState extends State<PetScreen> {
+  final petService = PetService();
+  // Tracks which button is loading so we can show a spinner
+  // on just that button without disabling the whole screen
+  String? loadingAction;
+
+  Future<void> handleFeed() async {
+    setState(() => loadingAction = 'Feed');
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      await petService.feedPet(userId, widget.pet.id, widget.pet.hunger);
+      // Tell HomePage to refresh pet data so stats update on screen
+      await widget.onAction();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      setState(() => loadingAction = null);
+    }
+  }
+
+  Future<void> handlePlay() async {
+    setState(() => loadingAction = 'Play');
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      await petService.playWithPet(
+        userId,
+        widget.pet.id,
+        widget.pet.happiness,
+        widget.pet.energy,
+      );
+      await widget.onAction();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      setState(() => loadingAction = null);
+    }
+  }
+
+  Future<void> handleSleepWake() async {
+    setState(() => loadingAction = 'SleepWake');
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      if (widget.pet.isAsleep) {
+        await petService.wakeUp(userId, widget.pet.id);
+      } else {
+        await petService.putToSleep(userId, widget.pet.id);
+      }
+      await widget.onAction();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      setState(() => loadingAction = null);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +97,8 @@ class PetScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-
-              // Pet name + subtitle
               Text(
-                pet.name,
+                widget.pet.name,
                 style: const TextStyle(
                   fontSize: 28, fontWeight: FontWeight.bold,
                 ),
@@ -46,11 +119,8 @@ class PetScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    // Placeholder — swap for real sprite later
                     const Text('🐾', style: TextStyle(fontSize: 80)),
                     const SizedBox(height: 12),
-
-                    // Mood message bubble
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 10,
@@ -79,27 +149,41 @@ class PetScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildStatRow('🍎', 'Hunger', pet.hunger, Colors.green),
+                    _buildStatRow('🍎', 'Hunger', widget.pet.hunger, Colors.green),
                     const SizedBox(height: 16),
-                    _buildStatRow('❤️', 'Happiness', pet.happiness, Colors.pink),
+                    _buildStatRow('❤️', 'Happiness', widget.pet.happiness, Colors.pink),
                     const SizedBox(height: 16),
-                    _buildStatRow('⚡', 'Energy', pet.energy, Colors.orange),
+                    _buildStatRow('⚡', 'Energy', widget.pet.energy, Colors.orange),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Feed, Play, Sleep/Wake buttons
+              // Action buttons — now wired up to real handlers
               Row(
                 children: [
-                  _buildActionButton('Feed', Icons.apple, const Color(0xFF4CAF82)),
-                  const SizedBox(width: 12),
-                  _buildActionButton('Play', Icons.auto_awesome, const Color(0xFFE91E8C)),
+                  _buildActionButton(
+                    'Feed',
+                    Icons.apple,
+                    const Color(0xFF4CAF82),
+                    handleFeed,
+                    'Feed',
+                  ),
                   const SizedBox(width: 12),
                   _buildActionButton(
-                    pet.isAsleep ? 'Wake' : 'Sleep',
-                    pet.isAsleep ? Icons.wb_sunny : Icons.nightlight_round,
+                    'Play',
+                    Icons.auto_awesome,
+                    const Color(0xFFE91E8C),
+                    handlePlay,
+                    'Play',
+                  ),
+                  const SizedBox(width: 12),
+                  _buildActionButton(
+                    widget.pet.isAsleep ? 'Wake' : 'Sleep',
+                    widget.pet.isAsleep ? Icons.wb_sunny : Icons.nightlight_round,
                     const Color(0xFFFF9800),
+                    handleSleepWake,
+                    'SleepWake',
                   ),
                 ],
               ),
@@ -160,16 +244,14 @@ class PetScreen extends StatelessWidget {
     );
   }
 
-  // Mood message changes based on stats
   String _getMoodMessage() {
-    if (pet.isAsleep) return '${pet.name} is sleeping... 💤';
-    if (pet.happiness < 30) return '${pet.name} is feeling lonely...';
-    if (pet.hunger < 30) return '${pet.name} is hungry...';
-    if (pet.energy < 30) return '${pet.name} is tired...';
-    return '${pet.name} is happy to see you!';
+    if (widget.pet.isAsleep) return '${widget.pet.name} is sleeping... 💤';
+    if (widget.pet.happiness < 30) return '${widget.pet.name} is feeling lonely...';
+    if (widget.pet.hunger < 30) return '${widget.pet.name} is hungry...';
+    if (widget.pet.energy < 30) return '${widget.pet.name} is tired...';
+    return '${widget.pet.name} is happy to see you!';
   }
 
-  // Stat label + progress bar
   Widget _buildStatRow(String emoji, String label, int value, Color color) {
     return Column(
       children: [
@@ -199,13 +281,19 @@ class PetScreen extends StatelessWidget {
     );
   }
 
-  // Single action button
-  Widget _buildActionButton(String label, IconData icon, Color color) {
+  // Now takes an onPressed handler and an actionKey for the loading state
+  Widget _buildActionButton(
+    String label,
+    IconData icon,
+    Color color,
+    Future<void> Function() onPressed,
+    String actionKey,
+  ) {
+    final isLoading = loadingAction == actionKey;
     return Expanded(
       child: ElevatedButton(
-        onPressed: () {
-          // TODO: wire up Phase 4 interactions
-        },
+        // Disable all buttons while any action is in progress
+        onPressed: loadingAction != null ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,
@@ -216,7 +304,17 @@ class PetScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, size: 24),
+            // Show spinner on the tapped button, icon on the others
+            isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Icon(icon, size: 24),
             const SizedBox(height: 4),
             Text(label, style: const TextStyle(fontSize: 13)),
           ],
