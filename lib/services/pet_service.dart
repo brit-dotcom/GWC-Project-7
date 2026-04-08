@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/pet.dart';
 
 class PetService {
@@ -43,7 +42,6 @@ class PetService {
 
   // Feed the pet — restores hunger by 30, capped at 100
   Future<void> feedPet(String userId, String petId, int currentHunger) async {
-    // clamp() makes sure hunger never goes above 100
     final newHunger = (currentHunger + 30).clamp(0, 100);
     await updatePetStats(userId, petId, {'hunger': newHunger});
   }
@@ -67,4 +65,31 @@ class PetService {
   Future<void> wakeUp(String userId, String petId) async {
     await updatePetStats(userId, petId, {'isAsleep': false});
   }
-}
+
+  // Add coins to the user's total — called when study session completes
+  Future<void> addCoins(String userId, int amount) async {
+    final userDoc = await _db.collection('users').doc(userId).get();
+    final currentCoins = userDoc.data()?['coins'] ?? 0;
+    final newCoins = currentCoins + amount;
+    await _db.collection('users').doc(userId).update({'coins': newCoins});
+  }
+
+  // Read the user's current coin balance
+  Future<int> getCoins(String userId) async {
+    final userDoc = await _db.collection('users').doc(userId).get();
+    return userDoc.data()?['coins'] ?? 0;
+  }
+
+  // Spend coins — used by shop later
+  // Returns true if purchase succeeded, false if not enough coins
+  Future<bool> spendCoins(String userId, int amount) async {
+    final userDoc = await _db.collection('users').doc(userId).get();
+    final currentCoins = userDoc.data()?['coins'] ?? 0;
+    if (currentCoins < amount) return false;
+    await _db.collection('users').doc(userId).update({
+      'coins': currentCoins - amount,
+    });
+    return true;
+  }
+
+} // ← all functions must be above this closing brace
