@@ -23,7 +23,7 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
   // Controls whether the loading spinner shows
   bool isLoading = false;
 
-  // All available pet types — add more here later if needed!
+  // All available pet types
   final List<String> petTypes = ['cat', 'bunny', 'deer'];
 
   @override
@@ -44,10 +44,7 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
 
     setState(() => isLoading = true);
     try {
-      // Get the current logged-in user's ID
       final userId = FirebaseAuth.instance.currentUser!.uid;
-
-      // Save the new pet to Firestore
       await petService.createPet(
         userId,
         nameController.text.trim(),
@@ -63,14 +60,12 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
         );
       }
     } catch (e) {
-      // Show any errors to the user (e.g. no internet)
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
         );
       }
     } finally {
-      // Always turn off the loading spinner when done
       setState(() => isLoading = false);
     }
   }
@@ -79,7 +74,6 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        // Gradient background matching the Figma design
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFD4ECD4), Color(0xFFD4E8F0)],
@@ -95,21 +89,20 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
               children: [
                 const SizedBox(height: 20),
 
-                // Screen title
                 const Text(
-                  "Create Your Pet",
+                  'Create Your Pet',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const Text(
-                  "Choose your companion!",
+                  'Choose your companion!',
                   style: TextStyle(fontSize: 16, color: Colors.black54),
                 ),
                 const SizedBox(height: 40),
 
-                // Placeholder pet icon — swap this out for the real sprite later
+                // Placeholder pet icon — swap for real sprite later
                 Container(
                   width: 120,
                   height: 120,
@@ -124,7 +117,7 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
 
                 const SizedBox(height: 32),
 
-                // Pet name input field
+                // Pet name input
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -142,7 +135,6 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
 
                 const SizedBox(height: 20),
 
-                // Label above the pet type buttons
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -152,21 +144,19 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Pet type selector — loops through petTypes list
-                // and highlights whichever one is selected
+                // Pet type selector
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: petTypes.map((type) {
                     final isSelected = selectedType == type;
                     return GestureDetector(
-                      // Update selectedType when tapped
                       onTap: () => setState(() => selectedType = type),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10,
+                          horizontal: 16,
+                          vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          // Green if selected, white if not
                           color: isSelected
                               ? const Color(0xFF4CAF82)
                               : Colors.white,
@@ -191,10 +181,9 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
                   }).toList(),
                 ),
 
-                // Pushes the button to the bottom of the screen
                 const Spacer(),
 
-                // Submit button — disabled and shows spinner while loading
+                // Submit button
                 SizedBox(
                   width: double.infinity,
                   height: 56,
