@@ -1,21 +1,28 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/pet.dart';
 import '../services/pet_service.dart';
 
 // Two timer mode options
 enum TimerMode {
-  short, // 25 min focus, 5 min break, 20 coins
-  long,  // 45 min focus, 10 min break, 50 coins
+  short, // 25 min focus, 5 min break  → 20 coins
+  long,  // 45 min focus, 10 min break → 40 coins
 }
 
 // Whether we're in focus time or break time
 enum TimerPhase { focus, breakTime }
 
 class StudyScreen extends StatefulWidget {
+  // Pet is passed in from HomePage so the sprite can be displayed.
+  final Pet pet;
   final Future<void> Function() onSessionComplete;
 
-  const StudyScreen({super.key, required this.onSessionComplete});
+  const StudyScreen({
+    super.key,
+    required this.pet,
+    required this.onSessionComplete,
+  });
 
   @override
   State<StudyScreen> createState() => _StudyScreenState();
@@ -33,29 +40,38 @@ class _StudyScreenState extends State<StudyScreen> {
   // Timer state
   Timer? _timer;
   bool isRunning = false;
-  int secondsRemaining = 25 * 60; // starts at 25 minutes
+  int secondsRemaining = 25 * 60;
 
-  // Tracks completed sessions this screen session
+  // Tracks completed focus sessions this screen visit
   int sessionsCompleted = 0;
 
-  // Coin rewards per mode
-  static const int shortReward = 20;
-  static const int longReward = 50;
-
-  // Focus durations in minutes per mode
+  // Focus/break durations per mode
   int get focusMinutes => selectedMode == TimerMode.short ? 25 : 45;
-  int get breakMinutes => selectedMode == TimerMode.short ? 5 : 10;
-  int get coinReward => selectedMode == TimerMode.short ? shortReward : longReward;
+  int get breakMinutes => selectedMode == TimerMode.short ?  5 : 10;
+
+  // Coin rewards matching game logic:
+  //   25 min session (short) → 20 coins
+  //   45 min session (long)  → 40 coins
+  int get coinReward => selectedMode == TimerMode.short ? 20 : 40;
+
+  // ── Placeholder sprite (swap for Image.asset once designer assets are ready)
+  String get _petEmoji {
+    switch (widget.pet.type) {
+      case PetType.bunny: return '🐰';
+      case PetType.cat:   return '🐱';
+      case PetType.deer:  return '🦌';
+    }
+  }
 
   @override
   void dispose() {
-    // Always cancel the timer when leaving the screen
-    // to prevent memory leaks
     _timer?.cancel();
     super.dispose();
   }
 
-  // Switch between short and long mode — only allowed when timer is stopped
+  // ── Timer controls ───────────────────────────
+
+  // Switch modes — only allowed when timer is stopped
   void selectMode(TimerMode mode) {
     if (isRunning) return;
     setState(() {
@@ -67,13 +83,10 @@ class _StudyScreenState extends State<StudyScreen> {
 
   void startTimer() {
     setState(() => isRunning = true);
-
-    // Tick every second
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (secondsRemaining > 0) {
         setState(() => secondsRemaining--);
       } else {
-        // Time's up — handle phase transition
         _timer?.cancel();
         setState(() => isRunning = false);
         _onPhaseComplete();
@@ -95,32 +108,42 @@ class _StudyScreenState extends State<StudyScreen> {
     });
   }
 
-  // Called when a focus or break phase finishes
+  // ── Phase completion ─────────────────────────
+
   Future<void> _onPhaseComplete() async {
     if (currentPhase == TimerPhase.focus) {
-      // Focus session done — award coins and move to break
+      // Focus session done — award coins then move to break
       await _awardCoins();
       setState(() {
         currentPhase = TimerPhase.breakTime;
         secondsRemaining = breakMinutes * 60;
         sessionsCompleted++;
       });
-      _showCompletionSnackbar('Focus session complete! +$coinReward coins earned 🎉');
+      _showSnackbar('Focus session complete! +$coinReward coins earned 🎉');
     } else {
-      // Break done — reset back to focus phase
+      // Break done — reset back to focus
       setState(() {
         currentPhase = TimerPhase.focus;
         secondsRemaining = focusMinutes * 60;
       });
-      _showCompletionSnackbar('Break over! Ready for another session?');
+      _showSnackbar('Break over! Ready for another session?');
     }
   }
 
+  // Awards coins by going through the pet model so BOTH coins and
+  // totalCoinsEarned are updated correctly in Firestore.
   Future<void> _awardCoins() async {
     try {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-      await petService.addCoins(userId, coinReward);
-      // Tell HomePage to refresh so coin counter updates
+      final userId     = FirebaseAuth.instance.currentUser!.uid;
+      final currentPet = await petService.getPet(userId);
+      if (currentPet == null) return;
+
+      // applyPomodoroSession uses focusMinutes to determine the reward tier
+      // and calls _earn() internally, which increments both coin fields.
+      final updatedPet = currentPet.applyPomodoroSession(focusMinutes);
+      await petService.savePet(userId, updatedPet);
+
+      // Tell HomePage to refresh so the coin badge updates immediately
       await widget.onSessionComplete();
     } catch (e) {
       if (mounted) {
@@ -131,39 +154,59 @@ class _StudyScreenState extends State<StudyScreen> {
     }
   }
 
-  void _showCompletionSnackbar(String message) {
+  void _showSnackbar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
-  // Formats seconds into MM:SS display (e.g. 1500 → "25:00")
+  // ── Display helpers ──────────────────────────
+
+  // Formats seconds as MM:SS (e.g. 1500 → "25:00")
   String get timerDisplay {
-    final minutes = secondsRemaining ~/ 60;
-    final seconds = secondsRemaining % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    final m = secondsRemaining ~/ 60;
+    final s = secondsRemaining  % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
-  // Progress from 0.0 to 1.0 for the progress bar
+  // 0.0 → 1.0 progress for the bar
   double get timerProgress {
-    final totalSeconds = currentPhase == TimerPhase.focus
+    final total = currentPhase == TimerPhase.focus
         ? focusMinutes * 60
         : breakMinutes * 60;
-    return 1 - (secondsRemaining / totalSeconds);
+    return 1 - (secondsRemaining / total);
   }
+
+  // ── Build ─────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
+    final isFocus = currentPhase == TimerPhase.focus;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Study Timer')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
 
-            // Mode selector — disabled while timer is running
+            // ── Pet sprite ───────────────────────
+            // Shows the pet watching over the study session.
+            // Replace Text(_petEmoji) with Image.asset(widget.pet.spriteAsset)
+            // once designer assets are in place.
+            Text(
+              _petEmoji,
+              style: const TextStyle(fontSize: 72),
+            ),
+            Text(
+              '${widget.pet.name} is studying with you!',
+              style: const TextStyle(fontSize: 13, color: Colors.black54),
+            ),
+            const SizedBox(height: 20),
+
+            // ── Mode selector ────────────────────
+            // Disabled while the timer is running.
             Row(
               children: [
                 Expanded(
@@ -177,7 +220,8 @@ class _StudyScreenState extends State<StudyScreen> {
                           ? Colors.white
                           : Colors.black87,
                     ),
-                    child: const Text('25 / 5 min\n+20 coins',
+                    child: const Text(
+                      '25 / 5 min\n+20 coins',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -194,7 +238,8 @@ class _StudyScreenState extends State<StudyScreen> {
                           ? Colors.white
                           : Colors.black87,
                     ),
-                    child: const Text('45 / 10 min\n+50 coins',
+                    child: const Text(
+                      '45 / 10 min\n+40 coins',  // fixed: was +50
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -203,34 +248,32 @@ class _StudyScreenState extends State<StudyScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Phase label (Focus Time / Break Time)
+            // ── Phase label ──────────────────────
             Text(
-              currentPhase == TimerPhase.focus ? '📚 Focus Time' : '☕ Break Time',
+              isFocus ? '📚 Focus Time' : '☕ Break Time',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
 
-            // Timer countdown display
+            // ── Countdown display ────────────────
             Text(
               timerDisplay,
               style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
 
-            // Progress bar
+            // ── Progress bar ─────────────────────
             LinearProgressIndicator(
               value: timerProgress,
               minHeight: 8,
               backgroundColor: Colors.grey.shade200,
               valueColor: AlwaysStoppedAnimation<Color>(
-                currentPhase == TimerPhase.focus
-                    ? Colors.deepPurple
-                    : Colors.green,
+                isFocus ? Colors.deepPurple : Colors.green,
               ),
             ),
             const SizedBox(height: 24),
 
-            // Play/Pause and Reset buttons
+            // ── Play / Pause + Reset ─────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -242,7 +285,10 @@ class _StudyScreenState extends State<StudyScreen> {
                     padding: const EdgeInsets.all(20),
                     shape: const CircleBorder(),
                   ),
-                  child: Icon(isRunning ? Icons.pause : Icons.play_arrow, size: 32),
+                  child: Icon(
+                    isRunning ? Icons.pause : Icons.play_arrow,
+                    size: 32,
+                  ),
                 ),
                 const SizedBox(width: 20),
                 ElevatedButton(
@@ -259,7 +305,7 @@ class _StudyScreenState extends State<StudyScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Sessions completed + coin reward info
+            // ── Stats row: sessions + coin reward ─
             Row(
               children: [
                 Expanded(
@@ -275,10 +321,14 @@ class _StudyScreenState extends State<StudyScreen> {
                         Text(
                           '$sessionsCompleted',
                           style: const TextStyle(
-                            fontSize: 28, fontWeight: FontWeight.bold,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const Text('Sessions', style: TextStyle(color: Colors.black54)),
+                        const Text(
+                          'Sessions',
+                          style: TextStyle(color: Colors.black54),
+                        ),
                       ],
                     ),
                   ),
@@ -293,7 +343,11 @@ class _StudyScreenState extends State<StudyScreen> {
                     ),
                     child: Column(
                       children: [
-                        const Icon(Icons.monetization_on, color: Colors.white, size: 24),
+                        const Icon(
+                          Icons.monetization_on,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                         Text(
                           '+$coinReward',
                           style: const TextStyle(
