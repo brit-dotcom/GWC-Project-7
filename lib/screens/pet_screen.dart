@@ -1,68 +1,69 @@
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/pet.dart';
 import '../services/pet_service.dart';
-
-// Changed to StatefulWidget so we can show a loading state
-// while Firestore is being updated
+ 
 class PetScreen extends StatefulWidget {
   final Pet pet;
+ 
+  // Called after any action that modifies the pet so HomePage
+  // can re-fetch and pass down the updated pet.
   final Future<void> Function() onAction;
-
-  const PetScreen({super.key, required this.pet, required this.onAction});
-
+ 
+  // Navigation callbacks — wired up in HomePage.
+  final VoidCallback onOpenGames;
+  final VoidCallback onOpenPomodoro;
+  final VoidCallback onOpenPantry;
+  final VoidCallback onOpenWardrobe;
+ 
+  const PetScreen({
+    super.key,
+    required this.pet,
+    required this.onAction,
+    required this.onOpenGames,
+    required this.onOpenPomodoro,
+    required this.onOpenPantry,
+    required this.onOpenWardrobe,
+  });
+ 
   @override
   State<PetScreen> createState() => _PetScreenState();
 }
-
-class _PetScreenState extends State<PetScreen> {
+ 
+class _PetScreenState extends State<PetScreen>
+    with SingleTickerProviderStateMixin {
   final petService = PetService();
-  // Tracks which button is loading so we can show a spinner
-  // on just that button without disabling the whole screen
-  String? loadingAction;
-
-  Future<void> handleFeed() async {
-    setState(() => loadingAction = 'Feed');
-    try {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-      await petService.feedPet(userId, widget.pet.id, widget.pet.hunger);
-      // Tell HomePage to refresh pet data so stats update on screen
-      await widget.onAction();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    } finally {
-      setState(() => loadingAction = null);
-    }
+ 
+  // Controls the ZZZ animation shown while the pet is asleep.
+  late final AnimationController _zzzController;
+  late final Animation<double>   _zzzOpacity;
+ 
+  bool isSleepLoading = false;
+ 
+  @override
+  void initState() {
+    super.initState();
+    _zzzController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+ 
+    _zzzOpacity = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _zzzController, curve: Curves.easeInOut),
+    );
   }
-
-  Future<void> handlePlay() async {
-    setState(() => loadingAction = 'Play');
-    try {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-      await petService.playWithPet(
-        userId,
-        widget.pet.id,
-        widget.pet.happiness,
-        widget.pet.energy,
-      );
-      await widget.onAction();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    } finally {
-      setState(() => loadingAction = null);
-    }
+ 
+  @override
+  void dispose() {
+    _zzzController.dispose();
+    super.dispose();
   }
-
+ 
+  // ── Sleep / wake ─────────────────────────────
+ 
   Future<void> handleSleepWake() async {
-    setState(() => loadingAction = 'SleepWake');
+    setState(() => isSleepLoading = true);
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
       if (widget.pet.isAsleep) {
@@ -78,246 +79,483 @@ class _PetScreenState extends State<PetScreen> {
         );
       }
     } finally {
-      setState(() => loadingAction = null);
+      if (mounted) setState(() => isSleepLoading = false);
     }
   }
-
+ 
+  // ── Helpers ──────────────────────────────────
+ 
+  /// Returns the placeholder emoji for the current pet type.
+  /// Replace with Image.asset(widget.pet.spriteAsset) once
+  /// designer assets are ready.
+  String get _petEmoji {
+    switch (widget.pet.type) {
+      case PetType.bunny: return '🐰';
+      case PetType.cat:   return '🐱';
+      case PetType.deer:  return '🦌';
+    }
+  }
+ 
+  String get _moodMessage {
+    final name = widget.pet.name;
+    if (widget.pet.isAsleep)          return '$name is sleeping...';
+    if (widget.pet.happiness < 30)    return '$name is feeling lonely...';
+    if (widget.pet.hunger    < 30)    return '$name is hungry...';
+    if (widget.pet.energy    < 30)    return '$name is tired...';
+    return '$name is happy to see you!';
+  }
+ 
+  // ── Build ─────────────────────────────────────
+ 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFD4ECD4), Color(0xFFD4E8F0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    final pet       = widget.pet;
+    final isAsleep  = pet.isAsleep;
+ 
+    return Stack(
+      children: [
+        // ── Background ──────────────────────────
+        Image.asset(
+          'lib/screens/pet_living_room.png',
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
         ),
-      ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+
+        // Blur layer over the background image
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          child: Container(color: Colors.transparent),
+        ),
+
+        // Dark overlay when the pet is sleeping
+        if (isAsleep)
+          Container(
+            color: Colors.black.withValues(alpha: 0.6),
+          ),
+ 
+        SafeArea(
           child: Column(
             children: [
-              Text(
-                widget.pet.name,
-                style: const TextStyle(
-                  fontSize: 28, fontWeight: FontWeight.bold,
+              // ── Top bar ────────────────────────
+              _buildTopBar(pet, isAsleep),
+ 
+              // ── Pet sprite area ────────────────
+              Expanded(
+                child: Center(
+                  child: _buildPetSprite(pet, isAsleep),
                 ),
               ),
-              const Text(
-                'Your Digital Pet',
-                style: TextStyle(fontSize: 14, color: Colors.black54),
-              ),
-              const SizedBox(height: 16),
-
-              // Pet sprite card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    const Text('🐾', style: TextStyle(fontSize: 80)),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD4ECD4),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _getMoodMessage(),
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Stats card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    _buildStatRow('🍎', 'Hunger', widget.pet.hunger, Colors.green),
-                    const SizedBox(height: 16),
-                    _buildStatRow('❤️', 'Happiness', widget.pet.happiness, Colors.pink),
-                    const SizedBox(height: 16),
-                    _buildStatRow('⚡', 'Energy', widget.pet.energy, Colors.orange),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Action buttons — now wired up to real handlers
-              Row(
-                children: [
-                  _buildActionButton(
-                    'Feed',
-                    Icons.apple,
-                    const Color(0xFF4CAF82),
-                    handleFeed,
-                    'Feed',
+ 
+              // ── Mood message ───────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: Text(
+                  _moodMessage,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isAsleep ? Colors.white60 : Colors.black54,
                   ),
-                  const SizedBox(width: 12),
-                  _buildActionButton(
-                    'Play',
-                    Icons.auto_awesome,
-                    const Color(0xFFE91E8C),
-                    handlePlay,
-                    'Play',
-                  ),
-                  const SizedBox(width: 12),
-                  _buildActionButton(
-                    widget.pet.isAsleep ? 'Wake' : 'Sleep',
-                    widget.pet.isAsleep ? Icons.wb_sunny : Icons.nightlight_round,
-                    const Color(0xFFFF9800),
-                    handleSleepWake,
-                    'SleepWake',
-                  ),
-                ],
+                ),
               ),
+ 
+              // ── Stat bars ──────────────────────
+              _buildStatBars(pet, isAsleep),
+ 
               const SizedBox(height: 16),
-
-              // Info banner
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.info_outline, size: 16, color: Colors.black45),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Care for your pet by feeding, playing, and resting. Earn coins by completing Pomodoro study sessions!',
-                        style: TextStyle(fontSize: 12, color: Colors.black54),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Coin counter
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20, vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFC107),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.monetization_on, color: Colors.white, size: 20),
-                    SizedBox(width: 6),
-                    Text(
-                      '0',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _getMoodMessage() {
-    if (widget.pet.isAsleep) return '${widget.pet.name} is sleeping... 💤';
-    if (widget.pet.happiness < 30) return '${widget.pet.name} is feeling lonely...';
-    if (widget.pet.hunger < 30) return '${widget.pet.name} is hungry...';
-    if (widget.pet.energy < 30) return '${widget.pet.name} is tired...';
-    return '${widget.pet.name} is happy to see you!';
-  }
-
-  Widget _buildStatRow(String emoji, String label, int value, Color color) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 16)),
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontSize: 14)),
-            const Spacer(),
-            Text(
-              '$value/100',
-              style: const TextStyle(fontSize: 13, color: Colors.black54),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: LinearProgressIndicator(
-            value: value / 100,
-            minHeight: 10,
-            backgroundColor: Colors.grey.shade200,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
       ],
     );
   }
-
-  // Now takes an onPressed handler and an actionKey for the loading state
-  Widget _buildActionButton(
-    String label,
-    IconData icon,
-    Color color,
-    Future<void> Function() onPressed,
-    String actionKey,
-  ) {
-    final isLoading = loadingAction == actionKey;
-    return Expanded(
-      child: ElevatedButton(
-        // Disable all buttons while any action is in progress
-        onPressed: loadingAction != null ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+ 
+  // ── Top bar ───────────────────────────────────
+  //
+  // Layout:
+  //   LEFT  column : Pomodoro button, Games button
+  //   CENTER       : Coins indicator, Level indicator
+  //   RIGHT column : Wardrobe button, Pantry button, Sleep button
+ 
+  Widget _buildTopBar(Pet pet, bool isAsleep) {
+    final labelColor = isAsleep ? Colors.white70 : Colors.black87;
+ 
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Left: Pomodoro + Games ─────────────
+          Column(
+            children: [
+              _buildNavButton(
+                icon: Icons.timer_outlined,
+                label: 'Study',
+                color: const Color(0xFF7B5EA7),
+                isAsleep: isAsleep,
+                onTap: isAsleep ? null : widget.onOpenPomodoro,
+              ),
+              const SizedBox(height: 8),
+              _buildNavButton(
+                icon: Icons.sports_esports_outlined,
+                label: 'Games',
+                color: const Color(0xFFE91E8C),
+                isAsleep: isAsleep,
+                onTap: isAsleep ? null : widget.onOpenGames,
+              ),
+            ],
+          ),
+ 
+          // ── Center: Coins + Level ──────────────
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 4),
+                // Coins badge
+                _buildBadge(
+                  icon: Icons.monetization_on,
+                  iconColor: const Color(0xFFFFC107),
+                  label: '${pet.coins}',
+                  labelColor: labelColor,
+                  isAsleep: isAsleep,
+                ),
+                const SizedBox(height: 6),
+                // Level badge
+                _buildBadge(
+                  icon: Icons.star_rounded,
+                  iconColor: const Color(0xFF4CAF82),
+                  label: pet.levelName,
+                  labelColor: labelColor,
+                  isAsleep: isAsleep,
+                ),
+              ],
+            ),
+          ),
+ 
+          // ── Right: Wardrobe + Pantry + Sleep ───
+          Column(
+            children: [
+              _buildNavButton(
+                icon: Icons.checkroom_outlined,
+                label: 'Wardrobe',
+                color: const Color(0xFF5C9BD6),
+                isAsleep: isAsleep,
+                onTap: isAsleep ? null : widget.onOpenWardrobe,
+              ),
+              const SizedBox(height: 8),
+              _buildNavButton(
+                icon: Icons.restaurant_outlined,
+                label: 'Pantry',
+                color: const Color(0xFF4CAF82),
+                isAsleep: isAsleep,
+                onTap: isAsleep ? null : widget.onOpenPantry,
+              ),
+              const SizedBox(height: 8),
+              // Sleep button is always tappable (to wake up too)
+              _buildNavButton(
+                icon: isAsleep
+                    ? Icons.wb_sunny_outlined
+                    : Icons.bedtime_outlined,
+                label: isAsleep ? 'Wake' : 'Sleep',
+                color: const Color(0xFFFF9800),
+                isAsleep: false, // never grey out the sleep button
+                onTap: isSleepLoading ? null : handleSleepWake,
+                isLoading: isSleepLoading,
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+ 
+  // ── Pet sprite ────────────────────────────────
+ 
+  Widget _buildPetSprite(Pet pet, bool isAsleep) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Pet emoji placeholder.
+        // When designer assets are ready, replace with:
+        //   Image.asset(pet.spriteAsset, width: 160, height: 160)
+        Text(
+          _petEmoji,
+          style: TextStyle(
+            fontSize: 120,
+            // Slight dim while asleep
+            color: isAsleep
+                ? Colors.white.withOpacity(0.6)
+                : null,
           ),
         ),
-        child: Column(
+ 
+        // ZZZ animation — only shown while asleep
+        if (isAsleep)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: FadeTransition(
+              opacity: _zzzOpacity,
+              child: const Text(
+                'z z z',
+                style: TextStyle(
+                  fontSize: 22,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 4,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+ 
+  // ── Stat bars ─────────────────────────────────
+  //
+  // Displayed at the bottom of the screen, display-only.
+ 
+  Widget _buildStatBars(Pet pet, bool isAsleep) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: isAsleep
+            ? Colors.white.withOpacity(0.08)
+            : Colors.white.withOpacity(0.75),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          _buildStatRow(
+            emoji: '🍎',
+            label: 'Hunger',
+            value: pet.hunger,
+            color: const Color(0xFF4CAF82),
+            isAsleep: isAsleep,
+          ),
+          const SizedBox(height: 12),
+          _buildStatRow(
+            emoji: '❤️',
+            label: 'Happiness',
+            value: pet.happiness,
+            color: const Color(0xFFE91E8C),
+            isAsleep: isAsleep,
+          ),
+          const SizedBox(height: 12),
+          _buildStatRow(
+            emoji: '⚡',
+            label: 'Energy',
+            value: pet.energy,
+            color: const Color(0xFFFF9800),
+            isAsleep: isAsleep,
+          ),
+        ],
+      ),
+    );
+  }
+ 
+  Widget _buildStatRow({
+    required String emoji,
+    required String label,
+    required int value,
+    required Color color,
+    required bool isAsleep,
+  }) {
+    final textColor = isAsleep ? Colors.white60 : Colors.black87;
+    final trackColor = isAsleep
+        ? Colors.white.withOpacity(0.12)
+        : Colors.grey.shade200;
+ 
+    return Column(
+      children: [
+        Row(
           children: [
-            // Show spinner on the tapped button, icon on the others
-            isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Icon(icon, size: 24),
-            const SizedBox(height: 4),
-            Text(label, style: const TextStyle(fontSize: 13)),
+            Text(emoji, style: const TextStyle(fontSize: 15)),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(fontSize: 13, color: textColor),
+            ),
+            const Spacer(),
+            Text(
+              '$value/100',
+              style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.7)),
+            ),
           ],
+        ),
+        const SizedBox(height: 5),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: value / 100,
+            minHeight: 9,
+            backgroundColor: trackColor,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              isAsleep ? color.withOpacity(0.4) : color,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+ 
+  // ── Shared widget builders ────────────────────
+ 
+  /// Small icon + label button used in the top-left and top-right columns.
+  Widget _buildNavButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool isAsleep,
+    required VoidCallback? onTap,
+    bool isLoading = false,
+  }) {
+    return _NavButton(
+      icon: icon,
+      label: label,
+      color: color,
+      isAsleep: isAsleep,
+      onTap: onTap,
+      isLoading: isLoading,
+    );
+  }
+ 
+  /// Coin / level badge shown in the top-center.
+  Widget _buildBadge({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required Color labelColor,
+    required bool isAsleep,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: isAsleep
+            ? Colors.white.withOpacity(0.08)
+            : Colors.white.withOpacity(0.75),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: isAsleep ? iconColor.withOpacity(0.4) : iconColor,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: labelColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Nav button with hover effect ─────────────────────────────────────────────
+
+class _NavButton extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final bool isAsleep;
+  final VoidCallback? onTap;
+  final bool isLoading;
+
+  const _NavButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.isAsleep,
+    required this.onTap,
+    this.isLoading = false,
+  });
+
+  @override
+  State<_NavButton> createState() => _NavButtonState();
+}
+
+class _NavButtonState extends State<_NavButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveColor =
+        widget.isAsleep ? widget.color.withValues(alpha: 0.5) : widget.color;
+
+    // Brighten the box and strengthen the shadow on hover
+    final boxColor = widget.isAsleep
+        ? Colors.white.withValues(alpha: 0.15)
+        : _hovered
+            ? Colors.white.withValues(alpha: 1.0)
+            : Colors.white.withValues(alpha: 0.85);
+
+    return MouseRegion(
+      cursor: widget.onTap != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit:  (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: (_hovered && !widget.isAsleep && widget.onTap != null) ? 1.12 : 1.0,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: boxColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: widget.isAsleep
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: _hovered ? 0.28 : 0.15,
+                            ),
+                            blurRadius: _hovered ? 10 : 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                ),
+                child: widget.isLoading
+                    ? Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: effectiveColor,
+                        ),
+                      )
+                    : Icon(widget.icon, color: effectiveColor, size: 22),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
