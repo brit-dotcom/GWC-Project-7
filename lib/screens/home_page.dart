@@ -1,46 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/pet_service.dart';
-import '../services/decay_service.dart'; // ← new import
 import '../models/pet.dart';
+import '../services/pet_service.dart';
+import '../services/decay_service.dart';
 import 'pet_screen.dart';
-import 'shop_screen.dart';
 import 'games_screen.dart';
 import 'study_screen.dart';
-
+import 'pantry_screen.dart';    // replaces shop_screen.dart
+import 'wardrobe_screen.dart';  // new screen
+ 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
+ 
   @override
   State<HomePage> createState() => _HomePageState();
 }
-
+ 
 class _HomePageState extends State<HomePage> {
-  int currentIndex = 0;
-  final petService = PetService();
-  final decayService = DecayService(); // ← new
+  final petService   = PetService();
+  final decayService = DecayService();
+ 
   Pet? pet;
   bool isLoading = true;
-
+ 
   @override
   void initState() {
     super.initState();
-    loadPetWithDecay(); // ← changed from loadPet()
+    loadPetWithDecay();
   }
-
-  // Loads the pet then immediately applies any time decay
-  // before showing the screen — so stats are always current
+ 
+  // Loads the pet then applies any time-based stat decay before showing the UI.
   Future<void> loadPetWithDecay() async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
-
-    // Step 1: fetch the pet from Firestore
     final fetchedPet = await petService.getPet(userId);
-
+ 
     if (fetchedPet != null) {
-      // Step 2: calculate and apply decay based on time away
       await decayService.applyDecay(fetchedPet);
-
-      // Step 3: fetch again so UI shows the post-decay values
       final updatedPet = await petService.getPet(userId);
       setState(() {
         pet = updatedPet;
@@ -50,14 +45,63 @@ class _HomePageState extends State<HomePage> {
       setState(() => isLoading = false);
     }
   }
-
-  // Refreshes pet data — called by child screens after any action
+ 
+  // Called by PetScreen and every sub-screen after any action that changes
+  // the pet, so the UI always shows up-to-date stats and coins.
   Future<void> refreshPet() async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final userId     = FirebaseAuth.instance.currentUser!.uid;
     final updatedPet = await petService.getPet(userId);
     setState(() => pet = updatedPet);
   }
-
+ 
+  // ── Navigation helpers ───────────────────────
+ 
+  Future<void> _openGames() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GamesScreen(onCoinsEarned: refreshPet),
+      ),
+    );
+    await refreshPet();
+  }
+ 
+  Future<void> _openPomodoro() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        // pet is now passed in so StudyScreen can show the sprite.
+        builder: (_) => StudyScreen(
+          pet: pet!,
+          onSessionComplete: refreshPet,
+        ),
+      ),
+    );
+    await refreshPet();
+  }
+ 
+  Future<void> _openPantry() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PantryScreen(pet: pet!, onPurchase: refreshPet),
+      ),
+    );
+    await refreshPet();
+  }
+ 
+  Future<void> _openWardrobe() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => WardrobeScreen(pet: pet!, onPurchase: refreshPet),
+      ),
+    );
+    await refreshPet();
+  }
+ 
+  // ── Build ────────────────────────────────────
+ 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -65,33 +109,25 @@ class _HomePageState extends State<HomePage> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
+ 
     if (pet == null) {
       return const Scaffold(
         body: Center(child: Text('No pet found.')),
       );
     }
-
-    final screens = [
-      PetScreen(pet: pet!, onAction: refreshPet),
-      ShopScreen(pet: pet!, onPurchase: refreshPet),
-      GamesScreen(onCoinsEarned: refreshPet),
-      StudyScreen(onSessionComplete: refreshPet),
-    ];
-
+ 
     return Scaffold(
-      body: screens[currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) => setState(() => currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Shop'),
-          BottomNavigationBarItem(icon: Icon(Icons.sports_esports), label: 'Games'),
-          BottomNavigationBarItem(icon: Icon(Icons.timer), label: 'Study'),
-        ],
+      // The PetScreen owns the full visual layout of the main screen.
+      // HomePage just wraps it and handles navigation to sub-screens.
+      body: PetScreen(
+        pet: pet!,
+        onAction:       refreshPet,
+        onOpenGames:    _openGames,
+        onOpenPomodoro: _openPomodoro,
+        onOpenPantry:   _openPantry,
+        onOpenWardrobe: _openWardrobe,
       ),
     );
   }
 }
+ 
