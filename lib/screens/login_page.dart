@@ -72,7 +72,9 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 20),
               TextField(
                 controller: emailController,
-                decoration: InputDecoration(
+                style: GoogleFonts.playfairDisplay(),
+                decoration: 
+                InputDecoration(
                   labelText: "Email",
                   labelStyle: GoogleFonts.playfairDisplay(),
                   border: OutlineInputBorder(),
@@ -81,7 +83,9 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 10),
               TextField(
                 controller: passwordController,
-                decoration: InputDecoration(
+                style: GoogleFonts.playfairDisplay(),
+                decoration: 
+                InputDecoration(
                   labelText: "Password",
                   labelStyle: GoogleFonts.playfairDisplay(),
                   border: OutlineInputBorder(),
