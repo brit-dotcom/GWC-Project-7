@@ -116,7 +116,7 @@ class _PetScreenState extends State<PetScreen>
       children: [
         // ── Background ──────────────────────────
         Image.asset(
-          'lib/screens/pet_living_room.png',
+          'assets/Petlivingroombackground.png',
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
