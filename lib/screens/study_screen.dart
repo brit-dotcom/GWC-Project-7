@@ -3,18 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/pet.dart';
 import '../services/pet_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-// Two timer mode options
-enum TimerMode {
-  short, // 25 min focus, 5 min break  → 20 coins
-  long,  // 45 min focus, 10 min break → 40 coins
-}
-
-// Whether we're in focus time or break time
+enum TimerMode { short, long }
 enum TimerPhase { focus, breakTime }
 
 class StudyScreen extends StatefulWidget {
-  // Pet is passed in from HomePage so the sprite can be displayed.
   final Pet pet;
   final Future<void> Function() onSessionComplete;
 
@@ -31,30 +25,18 @@ class StudyScreen extends StatefulWidget {
 class _StudyScreenState extends State<StudyScreen> {
   final petService = PetService();
 
-  // Current timer mode — defaults to short (25/5)
   TimerMode selectedMode = TimerMode.short;
-
-  // Whether we're in focus or break phase
   TimerPhase currentPhase = TimerPhase.focus;
 
-  // Timer state
   Timer? _timer;
   bool isRunning = false;
   int secondsRemaining = 25 * 60;
-
-  // Tracks completed focus sessions this screen visit
   int sessionsCompleted = 0;
 
-  // Focus/break durations per mode
   int get focusMinutes => selectedMode == TimerMode.short ? 25 : 45;
-  int get breakMinutes => selectedMode == TimerMode.short ?  5 : 10;
-
-  // Coin rewards matching game logic:
-  //   25 min session (short) → 20 coins
-  //   45 min session (long)  → 40 coins
+  int get breakMinutes => selectedMode == TimerMode.short ? 5 : 10;
   int get coinReward => selectedMode == TimerMode.short ? 20 : 40;
 
-  // ── Placeholder sprite (swap for Image.asset once designer assets are ready)
   String get _petEmoji {
     switch (widget.pet.type) {
       case PetType.bunny: return '🐰';
@@ -69,9 +51,6 @@ class _StudyScreenState extends State<StudyScreen> {
     super.dispose();
   }
 
-  // ── Timer controls ───────────────────────────
-
-  // Switch modes — only allowed when timer is stopped
   void selectMode(TimerMode mode) {
     if (isRunning) return;
     setState(() {
@@ -108,11 +87,8 @@ class _StudyScreenState extends State<StudyScreen> {
     });
   }
 
-  // ── Phase completion ─────────────────────────
-
   Future<void> _onPhaseComplete() async {
     if (currentPhase == TimerPhase.focus) {
-      // Focus session done — award coins then move to break
       await _awardCoins();
       setState(() {
         currentPhase = TimerPhase.breakTime;
@@ -121,7 +97,6 @@ class _StudyScreenState extends State<StudyScreen> {
       });
       _showSnackbar('Focus session complete! +$coinReward coins earned 🎉');
     } else {
-      // Break done — reset back to focus
       setState(() {
         currentPhase = TimerPhase.focus;
         secondsRemaining = focusMinutes * 60;
@@ -130,20 +105,14 @@ class _StudyScreenState extends State<StudyScreen> {
     }
   }
 
-  // Awards coins by going through the pet model so BOTH coins and
-  // totalCoinsEarned are updated correctly in Firestore.
   Future<void> _awardCoins() async {
     try {
-      final userId     = FirebaseAuth.instance.currentUser!.uid;
+      final userId = FirebaseAuth.instance.currentUser!.uid;
       final currentPet = await petService.getPet(userId);
       if (currentPet == null) return;
 
-      // applyPomodoroSession uses focusMinutes to determine the reward tier
-      // and calls _earn() internally, which increments both coin fields.
       final updatedPet = currentPet.applyPomodoroSession(focusMinutes);
       await petService.savePet(userId, updatedPet);
-
-      // Tell HomePage to refresh so the coin badge updates immediately
       await widget.onSessionComplete();
     } catch (e) {
       if (mounted) {
@@ -157,20 +126,16 @@ class _StudyScreenState extends State<StudyScreen> {
   void _showSnackbar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+          .showSnackBar(SnackBar(content: Text(message, style: GoogleFonts.playfairDisplay())));
     }
   }
 
-  // ── Display helpers ──────────────────────────
-
-  // Formats seconds as MM:SS (e.g. 1500 → "25:00")
   String get timerDisplay {
     final m = secondsRemaining ~/ 60;
-    final s = secondsRemaining  % 60;
+    final s = secondsRemaining % 60;
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
-  // 0.0 → 1.0 progress for the bar
   double get timerProgress {
     final total = currentPhase == TimerPhase.focus
         ? focusMinutes * 60
@@ -178,35 +143,44 @@ class _StudyScreenState extends State<StudyScreen> {
     return 1 - (secondsRemaining / total);
   }
 
-  // ── Build ─────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final isFocus = currentPhase == TimerPhase.focus;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Study Timer')),
-      body: SingleChildScrollView(
+      appBar: AppBar(
+        title: Text(
+          'Study Timer',
+          style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color.fromARGB(255, 235, 185, 201),
+      ),
+      body: Stack(
+        children:[
+          Image.asset(
+            'assets/bgss.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),  
+        
+      SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-
             // ── Pet sprite ───────────────────────
-            // Shows the pet watching over the study session.
-            // Replace Text(_petEmoji) with Image.asset(widget.pet.spriteAsset)
-            // once designer assets are in place.
-            Text(
-              _petEmoji,
-              style: const TextStyle(fontSize: 72),
-            ),
+            Text(_petEmoji, style: const TextStyle(fontSize: 72)),
             Text(
               '${widget.pet.name} is studying with you!',
-              style: const TextStyle(fontSize: 13, color: Colors.black54),
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 13,
+                color: Colors.black54,
+                fontStyle: FontStyle.italic,
+              ),
             ),
             const SizedBox(height: 20),
 
             // ── Mode selector ────────────────────
-            // Disabled while the timer is running.
             Row(
               children: [
                 Expanded(
@@ -214,15 +188,16 @@ class _StudyScreenState extends State<StudyScreen> {
                     onPressed: isRunning ? null : () => selectMode(TimerMode.short),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: selectedMode == TimerMode.short
-                          ? Colors.deepPurple
+                          ? Color.fromRGBO(224, 163, 187, 0.80) 
                           : Colors.grey.shade200,
                       foregroundColor: selectedMode == TimerMode.short
                           ? Colors.white
                           : Colors.black87,
                     ),
-                    child: const Text(
+                    child: Text(
                       '25 / 5 min\n+20 coins',
                       textAlign: TextAlign.center,
+                      style: GoogleFonts.playfairDisplay(),
                     ),
                   ),
                 ),
@@ -232,15 +207,16 @@ class _StudyScreenState extends State<StudyScreen> {
                     onPressed: isRunning ? null : () => selectMode(TimerMode.long),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: selectedMode == TimerMode.long
-                          ? Colors.deepPurple
-                          : Colors.grey.shade200,
+                          ?Color.fromRGBO(224, 163, 187, 0.80) 
+                          :  Color.fromRGBO(224, 163, 187, 0.80),
                       foregroundColor: selectedMode == TimerMode.long
                           ? Colors.white
                           : Colors.black87,
                     ),
-                    child: const Text(
-                      '45 / 10 min\n+40 coins',  // fixed: was +50
+                    child: Text(
+                      '45 / 10 min\n+40 coins',
                       textAlign: TextAlign.center,
+                      style: GoogleFonts.playfairDisplay(),
                     ),
                   ),
                 ),
@@ -251,14 +227,20 @@ class _StudyScreenState extends State<StudyScreen> {
             // ── Phase label ──────────────────────
             Text(
               isFocus ? '📚 Focus Time' : '☕ Break Time',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
 
             // ── Countdown display ────────────────
             Text(
               timerDisplay,
-              style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 64,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
 
@@ -268,7 +250,7 @@ class _StudyScreenState extends State<StudyScreen> {
               minHeight: 8,
               backgroundColor: Colors.grey.shade200,
               valueColor: AlwaysStoppedAnimation<Color>(
-                isFocus ? Colors.deepPurple : Colors.green,
+                isFocus ? Color.fromRGBO(224, 163, 187, 0.80) : Color(0xFF97A13B).withValues(alpha: 0.75),
               ),
             ),
             const SizedBox(height: 24),
@@ -280,7 +262,7 @@ class _StudyScreenState extends State<StudyScreen> {
                 ElevatedButton(
                   onPressed: isRunning ? pauseTimer : startTimer,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: Color.fromRGBO(224, 163, 187, 0.80),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.all(20),
                     shape: const CircleBorder(),
@@ -305,14 +287,14 @@ class _StudyScreenState extends State<StudyScreen> {
             ),
             const SizedBox(height: 24),
 
-            // ── Stats row: sessions + coin reward ─
+            // ── Stats row ────────────────────────
             Row(
               children: [
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Color(0xFF97A13B).withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -320,14 +302,16 @@ class _StudyScreenState extends State<StudyScreen> {
                         const Text('🏆', style: TextStyle(fontSize: 24)),
                         Text(
                           '$sessionsCompleted',
-                          style: const TextStyle(
+                          style: GoogleFonts.playfairDisplay(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const Text(
+                        Text(
                           'Sessions',
-                          style: TextStyle(color: Colors.black54),
+                          style: GoogleFonts.playfairDisplay(
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
@@ -338,36 +322,40 @@ class _StudyScreenState extends State<StudyScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFC107),
+                      color: Color(0xFF97A13B).withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.monetization_on,
-                          color: Colors.white,
+                          color: Color(0xFF97A13B).withValues(alpha: 0.75),
                           size: 24,
                         ),
                         Text(
                           '+$coinReward',
-                          style: const TextStyle(
+                          style: GoogleFonts.playfairDisplay(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        const Text(
+                        Text(
                           'Per Session',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ],
+                          style: GoogleFonts.playfairDisplay(
+                            color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
+      ],
       ),
     );
   }
