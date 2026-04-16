@@ -205,47 +205,59 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
             ),
             const SizedBox(height: 16),
 
-            // 4x4 card grid
+            // 4x4 card grid — LayoutBuilder measures the exact space
+            // available so the aspect ratio is calculated dynamically,
+            // ensuring all 16 cards fit on screen without any scrolling.
             Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: 16,
-                itemBuilder: (context, index) {
-                  final isFlipped = flipped[index] || matched[index];
-                  return GestureDetector(
-                    onTap: () => _onCardTapped(index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      decoration: BoxDecoration(
-                        // Green if matched, purple if flipped, grey if hidden
-                        color: matched[index]
-                            ? Colors.green.shade100
-                            : isFlipped
-                                ? Colors.deepPurple.shade100
-                                : Colors.deepPurple,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: matched[index]
-                              ? Colors.green
-                              : Colors.deepPurple,
-                          width: 2,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          // Show emoji if flipped, question mark if hidden
-                          isFlipped ? cards[index] : '?',
-                          style: TextStyle(
-                            fontSize: 28,
-                            color: isFlipped ? null : Colors.white,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  const spacing = 8.0;
+                  const columns = 4;
+                  const rows    = 4;
+                  final cardW = (constraints.maxWidth  - spacing * (columns - 1)) / columns;
+                  final cardH = (constraints.maxHeight - spacing * (rows    - 1)) / rows;
+
+                  return GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      crossAxisSpacing: spacing,
+                      mainAxisSpacing: spacing,
+                      childAspectRatio: cardW / cardH,
+                    ),
+                    itemCount: 16,
+                    itemBuilder: (context, index) {
+                      final isFlipped = flipped[index] || matched[index];
+                      return GestureDetector(
+                        onTap: () => _onCardTapped(index),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          decoration: BoxDecoration(
+                            color: matched[index]
+                                ? Colors.green.shade100
+                                : isFlipped
+                                    ? Colors.deepPurple.shade100
+                                    : Colors.deepPurple,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: matched[index]
+                                  ? Colors.green
+                                  : Colors.deepPurple,
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              isFlipped ? cards[index] : '?',
+                              style: TextStyle(
+                                fontSize: 28,
+                                color: isFlipped ? null : Colors.white,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
               ),
