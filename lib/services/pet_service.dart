@@ -19,6 +19,7 @@ class PetService {
       'coins':            0,
       'totalCoinsEarned': 0,
       'isAsleep':         false,
+      'isHatched':        false,
       'lastUpdated':      FieldValue.serverTimestamp(),
       'createdAt':        FieldValue.serverTimestamp(),
     });
@@ -71,4 +72,19 @@ class PetService {
     final updatedPet = pet.wakeUp(); // calculates energy from lastSleptAt
     await savePet(userId, updatedPet);
   }
+
+  // Mark the pet as hatched after the egg-tap sequence completes
+  Future<void> markPetHatched(String userId, String petId) async {
+    await _petsRef(userId).doc(petId).update({'isHatched': true});
+  }
+
+  // Award coins after a game round — uses pet model's applyGameRound()
+  // which handles happiness/energy/hunger effects too
+  Future<void> applyGameRound(String userId, {required bool won}) async {
+    final pet = await getPet(userId);
+    if (pet == null) return;
+    final updatedPet = pet.applyGameRound(won: won);
+    await savePet(userId, updatedPet);
+  }
+  
 }

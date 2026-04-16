@@ -40,6 +40,11 @@ class _PetScreenState extends State<PetScreen>
   late final Animation<double>   _zzzOpacity;
  
   bool isSleepLoading = false;
+
+  // Egg hatching state — only used when widget.pet.isHatched is false
+  int  _eggTapCount      = 0;
+  bool _isHatching       = false; // true after 3rd tap, prevents further taps
+  bool _showBabyPreview  = false; // true once the 3-second wait finishes
  
   @override
   void initState() {
@@ -60,8 +65,48 @@ class _PetScreenState extends State<PetScreen>
     super.dispose();
   }
  
+  // ── Egg hatching ─────────────────────────────
+
+  Future<void> _handleEggTap() async {
+    if (_isHatching) return;
+    setState(() => _eggTapCount++);
+    if (_eggTapCount < 3) return;
+
+    setState(() => _isHatching = true);
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+
+    setState(() => _showBabyPreview = true);
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    await petService.markPetHatched(userId, widget.pet.id);
+    await widget.onAction();
+  }
+
+  List<String> _eggStages() {
+    final up = switch (widget.pet.type) {
+      PetType.bunny => 'B',
+      PetType.cat   => 'C',
+      PetType.deer  => 'D',
+    };
+    final lo = up.toLowerCase();
+    return [
+      'assets/pixelEggs/${up}_egg_full.png',
+      'assets/pixelEggs/${lo}_small_crack.png',
+      'assets/pixelEggs/${lo}_mo_crack.png',
+      'assets/pixelEggs/${up}_cracked.png',
+    ];
+  }
+
+  String _bunnySpritePath(PetLevel level) {
+    return switch (level) {
+      PetLevel.baby  => 'assets/bb_b_wings.png',
+      PetLevel.kid   => 'assets/kid_b_wings.png',
+      PetLevel.adult => 'assets/adult_b_wings.png',
+    };
+  }
+
   // ── Sleep / wake ─────────────────────────────
- 
+
   Future<void> handleSleepWake() async {
     setState(() => isSleepLoading = true);
     try {
@@ -106,9 +151,102 @@ class _PetScreenState extends State<PetScreen>
   }
  
   // ── Build ─────────────────────────────────────
- 
+
+  Widget _buildEggHatchingScreen() {
+    final pet = widget.pet;
+
+    Widget centerContent;
+    if (_showBabyPreview) {
+      centerContent = pet.type == PetType.bunny
+          ? Image.asset('assets/bb_b_wings.png', width: 200, height: 200)
+          : Text(_petEmoji, style: const TextStyle(fontSize: 140));
+    } else {
+      final stages   = _eggStages();
+      final eggImage = Image.asset(
+        stages[_eggTapCount.clamp(0, 3)],
+        width: 200,
+        height: 200,
+      );
+      centerContent = _isHatching
+          ? eggImage
+          : MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: _handleEggTap,
+                child: eggImage,
+              ),
+            );
+    }
+
+    final instructionText = _showBabyPreview
+        ? '${pet.name} has hatched!'
+        : switch (_eggTapCount) {
+            0 => 'Tap the egg 3 times to hatch your pet!',
+            1 => '2 more taps!',
+            2 => '1 more tap!',
+            _ => 'Your pet is hatching...',
+          };
+
+    return Stack(
+      children: [
+        Image.asset(
+          'assets/Petlivingroombackground.png',
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+        ),
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          child: Container(color: Colors.transparent),
+        ),
+        SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  pet.name,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [Shadow(color: Colors.black45, blurRadius: 6)],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                centerContent,
+                const SizedBox(height: 32),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    instructionText,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!widget.pet.isHatched) {
+      return _buildEggHatchingScreen();
+    }
+
     final pet       = widget.pet;
     final isAsleep  = pet.isAsleep;
  
@@ -277,20 +415,25 @@ class _PetScreenState extends State<PetScreen>
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Pet emoji placeholder.
-        // When designer assets are ready, replace with:
-        //   Image.asset(pet.spriteAsset, width: 160, height: 160)
-        Text(
-          _petEmoji,
-          style: TextStyle(
-            fontSize: 120,
-            // Slight dim while asleep
-            color: isAsleep
-                ? Colors.white.withOpacity(0.6)
-                : null,
-          ),
-        ),
- 
+        pet.type == PetType.bunny
+            ? Opacity(
+                opacity: isAsleep ? 0.6 : 1.0,
+                child: Image.asset(
+                  _bunnySpritePath(pet.level),
+                  width: 160,
+                  height: 160,
+                ),
+              )
+            : Text(
+                _petEmoji,
+                style: TextStyle(
+                  fontSize: 120,
+                  color: isAsleep
+                      ? Colors.white.withValues(alpha: 0.6)
+                      : null,
+                ),
+              ),
+
         // ZZZ animation — only shown while asleep
         if (isAsleep)
           Positioned(

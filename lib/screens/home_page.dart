@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => GamesScreen(onCoinsEarned: refreshPet),
+        builder: (_) => GamesScreen(pet: pet!, onCoinsEarned: refreshPet),
       ),
     );
     await refreshPet();
