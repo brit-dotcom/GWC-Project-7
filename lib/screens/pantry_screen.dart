@@ -28,7 +28,7 @@ class _PantryScreenState extends State<PantryScreen> {
     setState(() => _loadingFoodId = food.id);
     try {
       final updated = _pet.applyFood(food);
-      final userId  = FirebaseAuth.instance.currentUser!.uid;
+      final userId = FirebaseAuth.instance.currentUser!.uid;
       await _petService.savePet(userId, updated);
       setState(() => _pet = updated);
       await widget.onPurchase();
@@ -51,70 +51,165 @@ class _PantryScreenState extends State<PantryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Food Pantry')),
-      body: Column(
+      appBar: AppBar(
+        title: const Text(
+          'Food Pantry',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color.fromARGB(255, 255, 185, 201),
+      ),
+      body: Stack(
         children: [
-          // Coin balance banner
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.monetization_on, color: Color(0xFFFFC107)),
-                const SizedBox(width: 6),
-                Text(
-                  '${_pet.coins} coins',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+          // ── Background image ──────────────────
+          Image.asset(
+            'assets/pantrybg.png',         // ← swap for your filename
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+
+          // ── Content ───────────────────────────
+          Column(
+            children: [
+
+              // ── Coin balance banner ───────────
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.monetization_on, color: Color(0xFFFFC107)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_pet.coins} coins',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Food grid ────────────────────
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: GridView.builder(
+                    itemCount: kFoodPantry.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.8,   // slightly taller to fit text
+                    ),
+                    itemBuilder: (context, index) {
+                      final food = kFoodPantry[index];
+                      final canAfford = _pet.coins >= food.cost;
+                      final isLoading = _loadingFoodId == food.id;
+
+                      return _FoodSlot(
+                        food: food,
+                        canAfford: canAfford,
+                        isLoading: isLoading,
+                        onTap: (canAfford && !isLoading) ? () => _feed(food) : null,
+                      );
+                    },
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          // Food list
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: kFoodPantry.length,
-              itemBuilder: (context, index) {
-                final food      = kFoodPantry[index];
-                final canAfford = _pet.coins >= food.cost;
-                final isLoading = _loadingFoodId == food.id;
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    leading: Text(
-                      food.icon,
-                      style: const TextStyle(fontSize: 36),
-                    ),
-                    title: Text(food.name),
-                    subtitle: Text(
-                      '+${food.hungerGain} hunger  '
-                      '+${food.happinessGain} happiness  '
-                      '+${food.energyGain} energy',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    trailing: ElevatedButton(
-                      onPressed: (canAfford && !isLoading)
-                          ? () => _feed(food)
-                          : null,
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text('${food.cost} 🪙'),
-                    ),
-                  ),
-                );
-              },
-            ),
+              const SizedBox(height: 16),
+            ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Food slot card ────────────────────────────────────────────────────────────
+
+class _FoodSlot extends StatelessWidget {
+  final FoodItem food;
+  final bool canAfford;
+  final bool isLoading;
+  final VoidCallback? onTap;
+
+  const _FoodSlot({
+    required this.food,
+    required this.canAfford,
+    required this.isLoading,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: canAfford ? 1.0 : 0.45,   // dim if can't afford
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withOpacity(0.85),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: canAfford
+                  ? const Color.fromARGB(255, 255, 185, 201)
+                  : colorScheme.outlineVariant,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+
+              // Food emoji
+              isLoading
+                  ? const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      food.icon,
+                      style: const TextStyle(fontSize: 32),
+                    ),
+
+              const SizedBox(height: 4),
+
+              // Food name
+              Text(
+                food.name,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              const SizedBox(height: 2),
+
+              // Cost
+              Text(
+                '${food.cost} 🪙',
+                style: const TextStyle(fontSize: 11),
+              ),
+
+              const SizedBox(height: 2),
+
+              // Stats
+              Text(
+                '🍖+${food.hungerGain}  😊+${food.happinessGain}',
+                style: const TextStyle(fontSize: 9, color: Colors.black54),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

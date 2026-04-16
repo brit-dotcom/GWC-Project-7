@@ -173,9 +173,10 @@ class _StudyScreenState extends State<StudyScreen> {
             Text(
               '${widget.pet.name} is studying with you!',
               style: GoogleFonts.playfairDisplay(
-                fontSize: 13,
+                fontSize: 16,
                 color: Colors.black54,
                 fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 20),
