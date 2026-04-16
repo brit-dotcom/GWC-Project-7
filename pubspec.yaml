@@ -94,12 +94,10 @@ flutter:
 
 
   assets:
-=======
     - assets/Petlivingroombackground.png
     - assets/bgss.png
     - assets/closettt.png
     - assets/bb_b_wings.png
     - assets/kid_b_wings.png
     - assets/adult_b_wings.png
-    - assets/pixelEggs.png
->>>>>>> f801394f5a5fb2e92fcb7d7402c3ae96d61c158f
+    - assets/pixelEggs/
