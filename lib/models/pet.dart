@@ -146,6 +146,11 @@ class Pet {
  
   // State
   final bool isAsleep;
+
+  /// False until the user taps the egg three times on first login.
+  /// Existing pets without this field in Firestore default to true
+  /// (already hatched) so they never see the egg screen.
+  final bool isHatched;
  
   /// ID of the currently worn outfit/accessory, or null if none.
   /// When your designer finishes the wardrobe assets, this string
@@ -169,6 +174,7 @@ class Pet {
     required this.coins,
     required this.totalCoinsEarned,
     this.isAsleep = false,
+    this.isHatched = true,
     this.outfit,
     this.lastSleptAt,
     DateTime? lastUpdated,
@@ -232,6 +238,7 @@ class Pet {
     int? coins,
     int? totalCoinsEarned,
     bool? isAsleep,
+    bool? isHatched,
     Object? outfit      = _sentinel,
     Object? lastSleptAt = _sentinel,
     DateTime? lastUpdated,
@@ -246,6 +253,7 @@ class Pet {
       coins:             (coins            ?? this.coins).clamp(0, 999999),
       totalCoinsEarned:  (totalCoinsEarned ?? this.totalCoinsEarned).clamp(0, 999999),
       isAsleep:          isAsleep          ?? this.isAsleep,
+      isHatched:         isHatched         ?? this.isHatched,
       outfit:      outfit      == _sentinel ? this.outfit      : outfit      as String?,
       lastSleptAt: lastSleptAt == _sentinel ? this.lastSleptAt : lastSleptAt as DateTime?,
       lastUpdated: lastUpdated ?? this.lastUpdated,
@@ -423,6 +431,7 @@ class Pet {
       coins:             (data['coins']            as num? ??   0).toInt().clamp(0, 999999),
       totalCoinsEarned:  (data['totalCoinsEarned'] as num? ??   0).toInt().clamp(0, 999999),
       isAsleep:          data['isAsleep']          as bool? ?? false,
+      isHatched:         data['isHatched']         as bool? ?? true,
       outfit:            data['outfit']            as String?,
       lastSleptAt:       (data['lastSleptAt']  as Timestamp?)?.toDate(),
       lastUpdated:       (data['lastUpdated']  as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -442,6 +451,7 @@ class Pet {
       'coins':            coins,
       'totalCoinsEarned': totalCoinsEarned,
       'isAsleep':         isAsleep,
+      'isHatched':        isHatched,
       'outfit':           outfit,
     };
   }
