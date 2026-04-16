@@ -33,10 +33,11 @@ const _kButtonColors = [
   Colors.red,
   Colors.blue,
   Colors.green,
+  Colors.pink,
   Colors.amber,
 ];
 
-const _kColorLabels = ['Red', 'Blue', 'Green', 'Yellow'];
+const _kColorLabels = ['Red', 'Blue', 'Green', 'Pink', 'Yellow'];
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -73,7 +74,7 @@ class _ColorSequenceScreenState extends State<ColorSequenceScreen> {
 
   void _beginNextRound() {
     _playerInput.clear();
-    _sequence.add(_random.nextInt(4)); // add one new random color
+    _sequence.add(_random.nextInt(5)); // add one new random color
     setState(() => _state = _GameState.showing);
     _playSequence();
   }
@@ -252,13 +253,36 @@ class _ColorSequenceScreenState extends State<ColorSequenceScreen> {
   }
 
   Widget _buildGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: List.generate(4, _buildColorButton),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Top row: Red, Blue, Green
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _buildColorButton(0)),
+              const SizedBox(width: 16),
+              Expanded(child: _buildColorButton(1)),
+              const SizedBox(width: 16),
+              Expanded(child: _buildColorButton(2)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Bottom row: Pink, Yellow — inset so they sit centred under the top 3
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Row(
+              children: [
+                Expanded(child: _buildColorButton(3)),
+                const SizedBox(width: 16),
+                Expanded(child: _buildColorButton(4)),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
