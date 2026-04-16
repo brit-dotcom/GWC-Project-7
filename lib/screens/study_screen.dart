@@ -45,6 +45,18 @@ class _StudyScreenState extends State<StudyScreen> {
     }
   }
 
+  Widget _buildPetSprite() {
+    if (widget.pet.type == PetType.bunny) {
+      final path = switch (widget.pet.level) {
+        PetLevel.baby  => 'assets/bb_b_wings.png',
+        PetLevel.kid   => 'assets/kid_b_wings.png',
+        PetLevel.adult => 'assets/adult_b_wings.png',
+      };
+      return Image.asset(path, width: 100, height: 100);
+    }
+    return Text(_petEmoji, style: const TextStyle(fontSize: 72));
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -169,7 +181,7 @@ class _StudyScreenState extends State<StudyScreen> {
         child: Column(
           children: [
             // ── Pet sprite ───────────────────────
-            Text(_petEmoji, style: const TextStyle(fontSize: 72)),
+            _buildPetSprite(),
             Text(
               '${widget.pet.name} is studying with you!',
               style: GoogleFonts.playfairDisplay(
