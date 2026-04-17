@@ -12,13 +12,13 @@ class WardrobeScreen extends StatelessWidget {
   });
 
   static const List<Map<String, dynamic>> _wardrobeItems = [
-    {'emoji': '🎩', 'label': 'Hat'},
-    {'emoji': '💎', 'label': 'Earrings'},
-    {'emoji': '📿', 'label': 'Necklace'},
-    {'emoji': '🧢', 'label': 'Beanie'},
-    {'emoji': '💍', 'label': 'Ring'},
-    {'emoji': '👓', 'label': 'Glasses'},
-    {'emoji': '🏅', 'label': 'Badge'},
+    {'image': 'assets/hat.jpg', 'label': 'Hat'},
+    {'image': 'assets/earring.jpg', 'label': 'Earrings'},
+    {'image': 'assets/tiara.jpg', 'label': 'Tiara'},
+    {'image': 'assets/beanie.jpg', 'label': 'Beanie'},
+    {'image': 'assets/ring.jpg', 'label': 'Ring'},
+    {'image': 'assets/glasses.jpg', 'label': 'Glasses'},
+    {'image': 'assets/wand.jpg', 'label': 'Wand'},
   ];
 
   @override
@@ -54,7 +54,7 @@ class WardrobeScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final accessory = _wardrobeItems[index];
                 return AccessorySlot(
-                  emoji: accessory['emoji'] as String,
+                  imagePath: accessory['image'] as String,
                   label: accessory['label'] as String,
                   onTap: () async {
                     await onPurchase();
@@ -70,13 +70,13 @@ class WardrobeScreen extends StatelessWidget {
 }
 
 class AccessorySlot extends StatelessWidget {
-  final String emoji;
+  final String imagePath;
   final String label;
   final VoidCallback onTap;
 
   const AccessorySlot({
     super.key,
-    required this.emoji,
+    required this.imagePath,
     required this.label,
     required this.onTap,
   });
@@ -104,12 +104,9 @@ class AccessorySlot extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Center(
-                child: FittedBox(
+                child: Image.asset(
+                  imagePath,
                   fit: BoxFit.contain,
-                  child: Text(
-                    emoji,
-                    style: const TextStyle(fontSize: 100),
-                  ),
                 ),
               ),
             ),
