@@ -12,13 +12,13 @@ class WardrobeScreen extends StatelessWidget {
   });
 
   static const List<Map<String, dynamic>> _wardrobeItems = [
-    {'icon': Icons.checkroom, 'label': 'Hat'},
-    {'icon': Icons.checkroom, 'label': 'Earrings'},
-    {'icon': Icons.watch, 'label': 'Necklace'},
-    {'icon': Icons.backpack, 'label': 'Beanie'},
-    {'icon': Icons.diamond, 'label': 'Ring'},
-    {'icon': Icons.face, 'label': 'Glasses'},
-    {'icon': Icons.badge, 'label': 'Badge'},
+    {'emoji': '🎩', 'label': 'Hat'},
+    {'emoji': '💎', 'label': 'Earrings'},
+    {'emoji': '📿', 'label': 'Necklace'},
+    {'emoji': '🧢', 'label': 'Beanie'},
+    {'emoji': '💍', 'label': 'Ring'},
+    {'emoji': '👓', 'label': 'Glasses'},
+    {'emoji': '🏅', 'label': 'Badge'},
   ];
 
   @override
@@ -26,24 +26,24 @@ class WardrobeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wardrobe'),
-        backgroundColor:Color.fromARGB(255, 235, 185, 201),
+        backgroundColor: const Color.fromARGB(255, 235, 185, 201),
       ),
       body: Stack(
         children: [
           // ── Background image ──────────────────
           Image.asset(
-            'assets/closetbg.png',
+            'assets/newPixelWardrobe.jpg',
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
           ),
 
           // ── Grid content ──────────────────────
-          SingleChildScrollView(          // ← was missing from Stack children list
+          SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: GridView.builder(
-              shrinkWrap: true,           // ← required inside SingleChildScrollView
-              physics: const NeverScrollableScrollPhysics(), // ← let parent scroll
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: _wardrobeItems.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
@@ -54,7 +54,7 @@ class WardrobeScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final accessory = _wardrobeItems[index];
                 return AccessorySlot(
-                  icon: accessory['icon'] as IconData,
+                  emoji: accessory['emoji'] as String,
                   label: accessory['label'] as String,
                   onTap: () async {
                     await onPurchase();
@@ -70,43 +70,72 @@ class WardrobeScreen extends StatelessWidget {
 }
 
 class AccessorySlot extends StatelessWidget {
-  final IconData icon;
+  final String emoji;
   final String label;
   final VoidCallback onTap;
 
   const AccessorySlot({
     super.key,
-    required this.icon,
+    required this.emoji,
     required this.label,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 32,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+          ],
+        ),
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            // ── Emoji (takes most space) ─────────
+            Expanded(
+              flex: 3,
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: Text(
+                    emoji,
+                    style: const TextStyle(fontSize: 100),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            // ── Label ───────────────────────────
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
