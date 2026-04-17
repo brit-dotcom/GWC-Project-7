@@ -660,11 +660,11 @@ class _NavButtonState extends State<_NavButton> {
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                width: 44,
-                height: 44,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   color: boxColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: widget.isAsleep
                       ? null
                       : [
@@ -685,13 +685,13 @@ class _NavButtonState extends State<_NavButton> {
                           color: effectiveColor,
                         ),
                       )
-                    : Icon(widget.icon, color: effectiveColor, size: 22),
+                    : Icon(widget.icon, color: effectiveColor, size: 30),
               ),
               const SizedBox(height: 3),
               Text(
                 widget.label,
                 style: const TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                   shadows: [Shadow(color: Colors.black54, blurRadius: 4)],

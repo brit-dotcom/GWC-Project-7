@@ -51,9 +51,9 @@ class GamesScreen extends StatelessWidget {
           final width = constraints.maxWidth;
           final height = constraints.maxHeight;
 
-          // 🔥 Responsive logic
+          // Responsive settings
           int crossAxisCount = width > 900 ? 3 : 2;
-          double aspectRatio = width > 900 ? 1.1 : 0.85;
+          double aspectRatio = width > 900 ? 1.15 : 0.9;
 
           double petSize = height * 0.22;
           double titleSize = width > 900 ? 16 : 18;
@@ -133,22 +133,6 @@ class GamesScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
-                      _GameButton(
-                        emoji: '⚡',
-                        title: 'Coming Soon',
-                        description:
-                            'A new challenge is on the way.\nStay tuned!',
-                        titleSize: titleSize,
-                        descSize: descSize,
-                        emojiSize: emojiSize,
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('This game is coming soon!'),
-                            ),
-                          );
-                        },
                       ),
                     ],
                   ),
