@@ -158,7 +158,7 @@ class _FoodSlot extends StatelessWidget {
               // Food emoji
               isLoading
                   ? const SizedBox(
-                      width: 28,
+                      width: 38,
                       height: 28,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
@@ -173,7 +173,7 @@ class _FoodSlot extends StatelessWidget {
               Text(
                 food.name,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 40,
                   fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
@@ -185,7 +185,7 @@ class _FoodSlot extends StatelessWidget {
               // Cost
               Text(
                 '${food.cost} 🪙',
-                style: const TextStyle(fontSize: 11),
+                style: const TextStyle(fontSize: 25),
               ),
 
               const SizedBox(height: 2),
@@ -193,7 +193,7 @@ class _FoodSlot extends StatelessWidget {
               // Stats
               Text(
                 '🍖+${food.hungerGain}  😊+${food.happinessGain}',
-                style: const TextStyle(fontSize: 9, color: Colors.black54),
+                style: const TextStyle(fontSize: 25, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
             ],

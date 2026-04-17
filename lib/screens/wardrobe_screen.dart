@@ -24,28 +24,45 @@ class WardrobeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Wardrobe')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
-          itemCount: 7,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1,
+      appBar: AppBar(
+        title: const Text('Wardrobe'),
+      ),
+      body: Stack(
+        children: [
+          // ── Background image ──────────────────
+          Image.asset(
+            'assets/closetbg.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
           ),
-          itemBuilder: (context, index) {
-            final accessory = _wardrobeItems[index];
-            return AccessorySlot(
-              icon: accessory['icon'] as IconData,
-              label: accessory['label'] as String,
-              onTap: () async {
-                await onPurchase();
+
+          // ── Grid content ──────────────────────
+          SingleChildScrollView(          // ← was missing from Stack children list
+            padding: const EdgeInsets.all(16.0),
+            child: GridView.builder(
+              shrinkWrap: true,           // ← required inside SingleChildScrollView
+              physics: const NeverScrollableScrollPhysics(), // ← let parent scroll
+              itemCount: _wardrobeItems.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1,
+              ),
+              itemBuilder: (context, index) {
+                final accessory = _wardrobeItems[index];
+                return AccessorySlot(
+                  icon: accessory['icon'] as IconData,
+                  label: accessory['label'] as String,
+                  onTap: () async {
+                    await onPurchase();
+                  },
+                );
               },
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -69,26 +86,26 @@ class AccessorySlot extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 32,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 32,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
               color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
