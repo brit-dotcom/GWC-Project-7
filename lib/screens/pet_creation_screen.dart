@@ -76,7 +76,7 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFD4ECD4), Color(0xFFD4E8F0)],
+            colors: [Color.fromARGB(204, 252, 206, 238), Color.fromRGBO(224, 163, 187, 0.80)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -92,13 +92,13 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
                 const Text(
                   'Create Your Pet',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 60,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const Text(
                   'Choose your companion!',
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: TextStyle(fontSize: 25, color: Colors.black54),
                 ),
                 const SizedBox(height: 40),
 
@@ -111,7 +111,7 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
                     borderRadius: BorderRadius.circular(60),
                   ),
                   child: const Center(
-                    child: Text('🐾', style: TextStyle(fontSize: 52)),
+                    child: Text('🐾', style: TextStyle(fontSize: 72)),
                   ),
                 ),
 
@@ -139,10 +139,10 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Choose a type:',
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(fontSize: 25, color: Colors.black),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 30),
 
                 // Pet type selector
                 Row(
@@ -158,18 +158,19 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? const Color(0xFF4CAF82)
+                              ? const Color(0xFF97A13B)
                               : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: isSelected
-                                ? const Color(0xFF4CAF82)
+                                ? const Color(0xFF97A13B)
                                 : Colors.grey.shade300,
                           ),
                         ),
                         child: Text(
                           type,
                           style: TextStyle(
+                            fontSize:20,
                             color: isSelected ? Colors.white : Colors.black87,
                             fontWeight: isSelected
                                 ? FontWeight.bold
@@ -190,7 +191,7 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
                   child: ElevatedButton(
                     onPressed: isLoading ? null : handleCreatePet,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4CAF82),
+                      backgroundColor: const Color(0xFF97A13B),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -200,7 +201,7 @@ class _PetCreationScreenState extends State<PetCreationScreen> {
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                             'Meet my pet!',
-                            style: TextStyle(fontSize: 18),
+                            style: TextStyle(fontSize: 35),
                           ),
                   ),
                 ),
