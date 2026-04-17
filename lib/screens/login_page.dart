@@ -274,7 +274,7 @@ Path _buildArcPath(Size size) {
 }
 
 // ---------------------------------------------------------------------------
-// CustomPainter — evenly divides the arc by sprite count for seamless looping
+// CustomPainter
 // ---------------------------------------------------------------------------
 class ArcSpritePainter extends CustomPainter {
   final double progress;
@@ -297,9 +297,6 @@ class ArcSpritePainter extends CustomPainter {
     final metric = metrics.first;
     final totalLength = metric.length;
     final count = validSprites.length;
-
-    // Spacing is exactly 1/count so the last sprite's next position
-    // is sprite[0]'s position — perfectly seamless
     final double spacing = 1.0 / count;
 
     for (int i = 0; i < count; i++) {
@@ -310,7 +307,7 @@ class ArcSpritePainter extends CustomPainter {
       final tangent = metric.getTangentForOffset(distance);
       if (tangent == null) continue;
 
-      const double spriteSize = 64.0;
+      const double spriteSize = 128.0;
       final src = Rect.fromLTWH(
         0, 0,
         image.image.width.toDouble(),
