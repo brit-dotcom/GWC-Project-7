@@ -62,7 +62,7 @@ class _PantryScreenState extends State<PantryScreen> {
         children: [
           // ── Background image ──────────────────
           Image.asset(
-            'assets/pantry.png',         // ← swap for your filename
+            'assets/pantry.jpg',         // ← swap for your filename
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
@@ -164,7 +164,7 @@ class _FoodSlot extends StatelessWidget {
                     )
                   : Text(
                       food.icon,
-                      style: const TextStyle(fontSize: 32),
+                      style: const TextStyle(fontSize: 15),
                     ),
 
               const SizedBox(height: 4),
@@ -173,7 +173,7 @@ class _FoodSlot extends StatelessWidget {
               Text(
                 food.name,
                 style: const TextStyle(
-                  fontSize: 40,
+                  fontSize: 20,
                   fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
@@ -185,7 +185,7 @@ class _FoodSlot extends StatelessWidget {
               // Cost
               Text(
                 '${food.cost} 🪙',
-                style: const TextStyle(fontSize: 25),
+                style: const TextStyle(fontSize: 15),
               ),
 
               const SizedBox(height: 2),
@@ -193,7 +193,7 @@ class _FoodSlot extends StatelessWidget {
               // Stats
               Text(
                 '🍖+${food.hungerGain}  😊+${food.happinessGain}',
-                style: const TextStyle(fontSize: 25, color: Colors.black54),
+                style: const TextStyle(fontSize: 15, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
             ],

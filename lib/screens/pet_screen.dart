@@ -220,7 +220,7 @@ class _PetScreenState extends State<PetScreen>
                   padding: const EdgeInsets.symmetric(
                       horizontal: 24, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.75),
+                    color:  Color.fromARGB(255, 143, 161, 102).withValues(alpha: 0.75),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

@@ -26,6 +26,7 @@ class WardrobeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wardrobe'),
+        backgroundColor:Color.fromARGB(255, 235, 185, 201),
       ),
       body: Stack(
         children: [
