@@ -52,7 +52,7 @@ class _StudyScreenState extends State<StudyScreen> {
         PetLevel.kid   => 'assets/kid_b_wings.png',
         PetLevel.adult => 'assets/adult_b_wings.png',
       };
-      return Image.asset(path, width: 100, height: 100);
+      return Image.asset(path, width: 200, height: 200);
     }
     return Text(_petEmoji, style: const TextStyle(fontSize: 72));
   }
@@ -185,7 +185,7 @@ class _StudyScreenState extends State<StudyScreen> {
             Text(
               '${widget.pet.name} is studying with you!',
               style: GoogleFonts.playfairDisplay(
-                fontSize: 16,
+                fontSize: 20,
                 color: Colors.black54,
                 fontStyle: FontStyle.italic,
                 fontWeight: FontWeight.w700,
@@ -201,11 +201,11 @@ class _StudyScreenState extends State<StudyScreen> {
                     onPressed: isRunning ? null : () => selectMode(TimerMode.short),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: selectedMode == TimerMode.short
-                          ? Color.fromRGBO(224, 163, 187, 0.80) 
-                          : Colors.grey.shade200,
+                          ?Color.fromARGB(204, 192, 118, 145)
+                          :Color.fromRGBO(224, 163, 187, 0.80),
                       foregroundColor: selectedMode == TimerMode.short
                           ? Colors.white
-                          : Colors.black87,
+                          : Colors.white,
                     ),
                     child: Text(
                       '25 / 5 min\n+20 coins',
@@ -220,11 +220,11 @@ class _StudyScreenState extends State<StudyScreen> {
                     onPressed: isRunning ? null : () => selectMode(TimerMode.long),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: selectedMode == TimerMode.long
-                          ?Color.fromRGBO(224, 163, 187, 0.80) 
-                          :  Color.fromRGBO(224, 163, 187, 0.80),
+                          ?Color.fromARGB(204, 192, 118, 145)
+                          :Color.fromRGBO(224, 163, 187, 0.80),
                       foregroundColor: selectedMode == TimerMode.long
                           ? Colors.white
-                          : Colors.black87,
+                          : Colors.white,
                     ),
                     child: Text(
                       '45 / 10 min\n+40 coins',
@@ -241,17 +241,17 @@ class _StudyScreenState extends State<StudyScreen> {
             Text(
               isFocus ? '📚 Focus Time' : '☕ Break Time',
               style: GoogleFonts.playfairDisplay(
-                fontSize: 18,
+                fontSize: 25,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 1),
 
             // ── Countdown display ────────────────
             Text(
               timerDisplay,
               style: GoogleFonts.playfairDisplay(
-                fontSize: 64,
+                fontSize: 104,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -260,10 +260,10 @@ class _StudyScreenState extends State<StudyScreen> {
             // ── Progress bar ─────────────────────
             LinearProgressIndicator(
               value: timerProgress,
-              minHeight: 8,
+              minHeight: 16,
               backgroundColor: Colors.grey.shade200,
               valueColor: AlwaysStoppedAnimation<Color>(
-                isFocus ? Color.fromRGBO(224, 163, 187, 0.80) : Color(0xFF97A13B).withValues(alpha: 0.75),
+                isFocus ? Color.fromARGB(204, 192, 118, 145) : Color(0xFF97A13B).withValues(alpha: 0.75),
               ),
             ),
             const SizedBox(height: 24),
@@ -282,7 +282,7 @@ class _StudyScreenState extends State<StudyScreen> {
                   ),
                   child: Icon(
                     isRunning ? Icons.pause : Icons.play_arrow,
-                    size: 32,
+                    size: 42,
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -294,7 +294,7 @@ class _StudyScreenState extends State<StudyScreen> {
                     padding: const EdgeInsets.all(20),
                     shape: const CircleBorder(),
                   ),
-                  child: const Icon(Icons.replay, size: 32),
+                  child: const Icon(Icons.replay, size: 42),
                 ),
               ],
             ),
@@ -312,18 +312,19 @@ class _StudyScreenState extends State<StudyScreen> {
                     ),
                     child: Column(
                       children: [
-                        const Text('🏆', style: TextStyle(fontSize: 24)),
+                        const Text('🏆', style: TextStyle(fontSize: 40)),
                         Text(
                           '$sessionsCompleted',
                           style: GoogleFonts.playfairDisplay(
-                            fontSize: 28,
+                            fontSize: 35,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           'Sessions',
                           style: GoogleFonts.playfairDisplay(
-                            color: Colors.black54,
+                            color: Colors.black,
+                            fontSize: 23
                           ),
                         ),
                       ],
@@ -342,13 +343,13 @@ class _StudyScreenState extends State<StudyScreen> {
                       children: [
                         Icon(
                           Icons.monetization_on,
-                          color: Color(0xFF97A13B).withValues(alpha: 0.75),
-                          size: 24,
+                          color: Color.fromARGB(255, 255, 255, 255).withValues(alpha: 0.75),
+                          size: 57,
                         ),
                         Text(
                           '+$coinReward',
                           style: GoogleFonts.playfairDisplay(
-                            fontSize: 28,
+                            fontSize: 35,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -357,6 +358,7 @@ class _StudyScreenState extends State<StudyScreen> {
                           'Per Session',
                           style: GoogleFonts.playfairDisplay(
                             color: Colors.white,
+                            fontSize: 23
                             ),
                           ),
                         ],

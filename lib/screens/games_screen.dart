@@ -56,9 +56,9 @@ class GamesScreen extends StatelessWidget {
           double aspectRatio = width > 900 ? 1.15 : 0.9;
 
           double petSize = height * 0.22;
-          double titleSize = width > 900 ? 16 : 18;
-          double descSize = width > 900 ? 12 : 14;
-          double emojiSize = width > 900 ? 32 : 40;
+          double titleSize = width > 900 ? 36 : 38;
+          double descSize = width > 900 ? 22 : 24;
+          double emojiSize = width > 900 ? 102 : 110;
 
           return Padding(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -69,8 +69,8 @@ class GamesScreen extends StatelessWidget {
                 Text(
                   '${pet.name} wants to play!',
                   style: GoogleFonts.playfairDisplay(
-                    fontSize: 16,
-                    color: Colors.black54,
+                    fontSize: 20,
+                    color: Colors.black,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
