@@ -73,7 +73,7 @@ class _PetScreenState extends State<PetScreen>
     if (_eggTapCount < 3) return;
 
     setState(() => _isHatching = true);
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 1));
     if (!mounted) return;
 
     setState(() => _showBabyPreview = true);
