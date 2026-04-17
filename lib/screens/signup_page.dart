@@ -29,6 +29,9 @@ class _SignupPageState extends State<SignupPage> {
         emailController.text.trim(),
         passwordController.text,
       );
+      // Pop back to the root so AuthWrapper detects the new auth state
+      // and routes directly to PetCreationScreen.
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
