@@ -83,7 +83,7 @@ class _PantryScreenState extends State<PantryScreen> {
                     Text(
                       '${_pet.coins} coins',
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -119,7 +119,7 @@ class _PantryScreenState extends State<PantryScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
             ],
           ),
         ],
@@ -158,13 +158,13 @@ class _FoodSlot extends StatelessWidget {
               // Food emoji
               isLoading
                   ? const SizedBox(
-                      width: 38,
-                      height: 28,
+                      width: 42,
+                      height: 40,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Text(
                       food.icon,
-                      style: const TextStyle(fontSize: 15),
+                      style: const TextStyle(fontSize: 20),
                     ),
 
               const SizedBox(height: 4),
@@ -173,7 +173,7 @@ class _FoodSlot extends StatelessWidget {
               Text(
                 food.name,
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 25,
                   fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
@@ -185,7 +185,7 @@ class _FoodSlot extends StatelessWidget {
               // Cost
               Text(
                 '${food.cost} 🪙',
-                style: const TextStyle(fontSize: 15),
+                style: const TextStyle(fontSize: 20),
               ),
 
               const SizedBox(height: 2),
@@ -193,7 +193,7 @@ class _FoodSlot extends StatelessWidget {
               // Stats
               Text(
                 '🍖+${food.hungerGain}  😊+${food.happinessGain}',
-                style: const TextStyle(fontSize: 15, color: Colors.black54),
+                style: const TextStyle(fontSize: 20, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
             ],
