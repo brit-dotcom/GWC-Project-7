@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/pet.dart';
 import '../services/pet_service.dart';
+import 'package:google_fonts/google_fonts.dart';
  
 class PetScreen extends StatefulWidget {
   final Pet pet;

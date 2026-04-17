@@ -2,6 +2,7 @@ import 'auth_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: AuthWrapper(),
+       title: 'Pomodachi',
+        theme: ThemeData(
+        textTheme: GoogleFonts.playfairDisplayTextTheme(),  // ← add this
+        useMaterial3: true,
+    )
     );
   }
 }
