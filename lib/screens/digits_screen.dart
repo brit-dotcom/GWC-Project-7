@@ -255,6 +255,7 @@ class _DigitsScreenState extends State<DigitsScreen> {
 
     if (onCooldown) {
       return Scaffold(
+        backgroundColor: Color.fromARGB(255, 235, 185, 201),
         appBar: AppBar(title: const Text('Digits')),
         body: Center(
           child: Column(
@@ -278,6 +279,7 @@ class _DigitsScreenState extends State<DigitsScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 235, 185, 201),
       appBar: AppBar(
         title: const Text('Digits'),
         actions: [
@@ -305,20 +307,20 @@ class _DigitsScreenState extends State<DigitsScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: won ? Colors.green : Colors.deepPurple,
+                color: won ? Colors.green : Color.fromARGB(204, 192, 118, 145),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 children: [
                   const Text(
                     'Target',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(color: Colors.white70, fontSize: 40),
                   ),
                   Text(
                     '$target',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 48,
+                      fontSize: 68,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -340,11 +342,11 @@ class _DigitsScreenState extends State<DigitsScreen> {
                     : selectedOperator == null
                         ? '$selectedNumber — now pick an operator'
                         : '$selectedNumber $selectedOperator — now pick a second number',
-                style: const TextStyle(fontSize: 14, color: Colors.black54),
+                style: const TextStyle(fontSize: 20, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 80),
 
             // Number tiles — 6 tiles, used ones are greyed out
             Wrap(
@@ -365,12 +367,12 @@ class _DigitsScreenState extends State<DigitsScreen> {
                       color: isUsed
                           ? Colors.grey.shade200
                           : isSelected
-                              ? Colors.deepPurple
-                              : Colors.deepPurple.shade100,
+                              ? Color.fromARGB(204, 255, 255, 255)
+                              : Color(0xFF97A13B),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isSelected
-                            ? Colors.deepPurple
+                            ? Color(0xFF97A13B)
                             : Colors.transparent,
                         width: 2,
                       ),
@@ -381,7 +383,7 @@ class _DigitsScreenState extends State<DigitsScreen> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : Colors.deepPurple,
+                          color: isSelected ? Color(0xFF97A13B) : Colors.white,
                         ),
                       ),
                     ),
@@ -389,7 +391,7 @@ class _DigitsScreenState extends State<DigitsScreen> {
                 );
               }),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 100),
 
             // Operator buttons
             Row(
@@ -403,16 +405,22 @@ class _DigitsScreenState extends State<DigitsScreen> {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.orange : Colors.orange.shade100,
+                      color: isSelected ? Color.fromARGB(255, 52, 198, 243) : const Color.fromARGB(255, 255, 255, 255),
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.transparent
+                            : Color.fromARGB(255, 52, 198, 243),
+                        width: 2,
+                      ),
                     ),
                     child: Center(
                       child: Text(
                         op,
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 48,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : Colors.orange,
+                          color: isSelected ? Colors.white : Color.fromARGB(255, 52, 198, 243),
                         ),
                       ),
                     ),
