@@ -62,7 +62,7 @@ class _PantryScreenState extends State<PantryScreen> {
         children: [
           // ── Background image ──────────────────
           Image.asset(
-            'assets/pantrybg.png',         // ← swap for your filename
+            'assets/pantry.png',         // ← swap for your filename
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
@@ -151,17 +151,6 @@ class _FoodSlot extends StatelessWidget {
       onTap: onTap,
       child: Opacity(
         opacity: canAfford ? 1.0 : 0.45,   // dim if can't afford
-        child: Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(0.85),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: canAfford
-                  ? const Color.fromARGB(255, 255, 185, 201)
-                  : colorScheme.outlineVariant,
-              width: 1.5,
-            ),
-          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -208,7 +197,6 @@ class _FoodSlot extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ],
-          ),
         ),
       ),
     );

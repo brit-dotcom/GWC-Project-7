@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
         textTheme: GoogleFonts.playfairDisplayTextTheme(),  // ← add this
         useMaterial3: true,
-    )
+      )
     );
   }
 }

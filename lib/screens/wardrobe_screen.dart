@@ -69,15 +69,6 @@ class AccessorySlot extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: colorScheme.outlineVariant,
-            width: 1.5,
-          ),
-        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -98,7 +89,6 @@ class AccessorySlot extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ],
-        ),
       ),
     );
   }
