@@ -144,7 +144,7 @@ class _PetScreenState extends State<PetScreen>
   String get _moodMessage {
     final name = widget.pet.name;
     if (widget.pet.isAsleep)          return '$name is sleeping...';
-    if (widget.pet.happiness < 30)    return '$name is feeling lonely...';
+    if (widget.pet.happiness < 30)    return '$name is feeling bored...';
     if (widget.pet.hunger    < 30)    return '$name is hungry...';
     if (widget.pet.energy    < 30)    return '$name is tired...';
     return '$name is happy to see you!';
@@ -292,8 +292,8 @@ class _PetScreenState extends State<PetScreen>
                   _moodMessage,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 14,
-                    color: isAsleep ? Colors.white60 : Colors.black54,
+                    fontSize: 20,
+                    color: isAsleep ? Colors.white60 : Colors.black,
                   ),
                 ),
               ),
@@ -420,8 +420,8 @@ class _PetScreenState extends State<PetScreen>
                 opacity: isAsleep ? 0.6 : 1.0,
                 child: Image.asset(
                   _bunnySpritePath(pet.level),
-                  width: 160,
-                  height: 160,
+                  width: 350,//160 before
+                  height: 350,//160 before
                 ),
               )
             : Text(
@@ -444,7 +444,7 @@ class _PetScreenState extends State<PetScreen>
               child: const Text(
                 'z z z',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 30,//22 before
                   color: Colors.white70,
                   fontWeight: FontWeight.w300,
                   letterSpacing: 4,
@@ -476,7 +476,7 @@ class _PetScreenState extends State<PetScreen>
             emoji: '🍎',
             label: 'Hunger',
             value: pet.hunger,
-            color: const Color(0xFF4CAF82),
+            color: const Color(0xFF97A13B),
             isAsleep: isAsleep,
           ),
           const SizedBox(height: 12),
@@ -484,7 +484,7 @@ class _PetScreenState extends State<PetScreen>
             emoji: '❤️',
             label: 'Happiness',
             value: pet.happiness,
-            color: const Color(0xFFE91E8C),
+            color: const Color.fromARGB(204, 230, 153, 184),
             isAsleep: isAsleep,
           ),
           const SizedBox(height: 12),
@@ -492,7 +492,7 @@ class _PetScreenState extends State<PetScreen>
             emoji: '⚡',
             label: 'Energy',
             value: pet.energy,
-            color: const Color(0xFFFF9800),
+            color: const Color.fromARGB(255, 181, 242, 251),
             isAsleep: isAsleep,
           ),
         ],
@@ -516,16 +516,16 @@ class _PetScreenState extends State<PetScreen>
       children: [
         Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 15)),
+            Text(emoji, style: const TextStyle(fontSize: 20)),
             const SizedBox(width: 8),
             Text(
               label,
-              style: TextStyle(fontSize: 13, color: textColor),
+              style: TextStyle(fontSize: 20, color: textColor),
             ),
             const Spacer(),
             Text(
               '$value/100',
-              style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.7)),
+              style: TextStyle(fontSize: 18, color: textColor.withOpacity(0.7)),
             ),
           ],
         ),
@@ -587,14 +587,14 @@ class _PetScreenState extends State<PetScreen>
         children: [
           Icon(
             icon,
-            size: 16,
+            size: 20,
             color: isAsleep ? iconColor.withOpacity(0.4) : iconColor,
           ),
           const SizedBox(width: 5),
           Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 20,
               fontWeight: FontWeight.w600,
               color: labelColor,
             ),
@@ -685,13 +685,13 @@ class _NavButtonState extends State<_NavButton> {
                           color: effectiveColor,
                         ),
                       )
-                    : Icon(widget.icon, color: effectiveColor, size: 30),
+                    : Icon(widget.icon, color: effectiveColor, size: 45),
               ),
               const SizedBox(height: 3),
               Text(
                 widget.label,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                   shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
