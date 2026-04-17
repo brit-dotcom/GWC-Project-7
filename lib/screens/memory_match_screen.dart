@@ -186,7 +186,9 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Memory Match')),
+      appBar: AppBar(title: const Text('Memory Match'), 
+      backgroundColor: Color(0xFF97A13B),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -196,10 +198,10 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Text('Moves: $moves',
-                  style: const TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 25),
                 ),
                 Text('Matches: $matchesFound / 8',
-                  style: const TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 25),
                 ),
               ],
             ),
@@ -234,15 +236,15 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
                           duration: const Duration(milliseconds: 300),
                           decoration: BoxDecoration(
                             color: matched[index]
-                                ? Colors.green.shade100
+                                ? Color.fromARGB(255, 212, 255, 194)
                                 : isFlipped
-                                    ? Colors.deepPurple.shade100
-                                    : Colors.deepPurple,
+                                    ? Color.fromRGBO(233, 182, 203, 0.8)
+                                    : Color.fromARGB(204, 192, 118, 145),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: matched[index]
-                                  ? Colors.green
-                                  : Colors.deepPurple,
+                                  ? Color(0xFF97A13B)
+                                  : Color.fromARGB(204, 192, 118, 145),
                               width: 2,
                             ),
                           ),
@@ -250,7 +252,7 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
                             child: Text(
                               isFlipped ? cards[index] : '?',
                               style: TextStyle(
-                                fontSize: 28,
+                                fontSize: 108,
                                 color: isFlipped ? null : Colors.white,
                               ),
                             ),

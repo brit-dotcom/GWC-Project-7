@@ -181,7 +181,9 @@ class _ColorSequenceScreenState extends State<ColorSequenceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Color Sequence')),
+      appBar: AppBar(title: const Text('Color Sequence'), 
+      backgroundColor: Color(0xFF97A13B),
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
@@ -334,7 +336,7 @@ class _ColorSequenceScreenState extends State<ColorSequenceScreen> {
       child: ElevatedButton(
         onPressed: _startGame,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: Color(0xFF97A13B),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(

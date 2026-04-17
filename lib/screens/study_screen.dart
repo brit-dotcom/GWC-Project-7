@@ -204,7 +204,7 @@ class _StudyScreenState extends State<StudyScreen> {
                     child: Text(
                       '25 / 5 min\n+20 coins',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.playfairDisplay(),
+                      style: GoogleFonts.playfairDisplay(fontSize: 20),
                     ),
                   ),
                 ),
@@ -223,7 +223,7 @@ class _StudyScreenState extends State<StudyScreen> {
                     child: Text(
                       '45 / 10 min\n+40 coins',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.playfairDisplay(),
+                      style: GoogleFonts.playfairDisplay(fontSize: 20),
                     ),
                   ),
                 ),
@@ -306,18 +306,19 @@ class _StudyScreenState extends State<StudyScreen> {
                     ),
                     child: Column(
                       children: [
-                        const Text('🏆', style: TextStyle(fontSize: 40)),
+                        const Text('🏆', style: TextStyle(fontSize: 35)),
                         Text(
                           '$sessionsCompleted',
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 35,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           'Sessions',
                           style: GoogleFonts.playfairDisplay(
-                            color: Colors.black,
+                            color: Colors.white,
                             fontSize: 23
                           ),
                         ),
@@ -343,7 +344,7 @@ class _StudyScreenState extends State<StudyScreen> {
                         Text(
                           '+$coinReward',
                           style: GoogleFonts.playfairDisplay(
-                            fontSize: 35,
+                            fontSize: 30,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
