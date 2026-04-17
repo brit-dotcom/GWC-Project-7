@@ -100,5 +100,11 @@ flutter:
     - assets/bb_b_wings.png
     - assets/kid_b_wings.png
     - assets/adult_b_wings.png
+    - assets/bb_cat_wings.png
+    - assets/kid_cat_wings.png
+    - assets/adult_cat_wings.png
+    - assets/bb_deer_wings.png
+    - assets/kid_deer_wings.png
+    - assets/adult_deer_wings.png
     - assets/pixelEggs/
     - assets/pantry.jpg
