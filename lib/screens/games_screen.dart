@@ -16,22 +16,17 @@ class GamesScreen extends StatelessWidget {
   });
 
   Widget _buildPetSprite(double size) {
-    if (pet.type == PetType.bunny) {
-      final path = switch (pet.level) {
-        PetLevel.baby  => 'assets/bb_b_wings.png',
-        PetLevel.kid   => 'assets/kid_b_wings.png',
-        PetLevel.adult => 'assets/adult_b_wings.png',
-      };
-      return Image.asset(path, width: size, height: size);
-    }
-
-    final emoji = switch (pet.type) {
-      PetType.cat  => '🐱',
-      PetType.deer => '🦌',
-      _            => '🐰',
+    final prefix = switch (pet.type) {
+      PetType.bunny => 'b',
+      PetType.cat   => 'cat',
+      PetType.deer  => 'deer',
     };
-
-    return Text(emoji, style: TextStyle(fontSize: size * 0.4));
+    final path = switch (pet.level) {
+      PetLevel.baby  => 'assets/bb_${prefix}_wings.png',
+      PetLevel.kid   => 'assets/kid_${prefix}_wings.png',
+      PetLevel.adult => 'assets/adult_${prefix}_wings.png',
+    };
+    return Image.asset(path, width: size, height: size);
   }
 
   @override

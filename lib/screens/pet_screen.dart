@@ -97,11 +97,16 @@ class _PetScreenState extends State<PetScreen>
     ];
   }
 
-  String _bunnySpritePath(PetLevel level) {
+  String _petSpritePath(PetType type, PetLevel level) {
+    final prefix = switch (type) {
+      PetType.bunny => 'b',
+      PetType.cat   => 'cat',
+      PetType.deer  => 'deer',
+    };
     return switch (level) {
-      PetLevel.baby  => 'assets/bb_b_wings.png',
-      PetLevel.kid   => 'assets/kid_b_wings.png',
-      PetLevel.adult => 'assets/adult_b_wings.png',
+      PetLevel.baby  => 'assets/bb_${prefix}_wings.png',
+      PetLevel.kid   => 'assets/kid_${prefix}_wings.png',
+      PetLevel.adult => 'assets/adult_${prefix}_wings.png',
     };
   }
 
@@ -157,9 +162,11 @@ class _PetScreenState extends State<PetScreen>
 
     Widget centerContent;
     if (_showBabyPreview) {
-      centerContent = pet.type == PetType.bunny
-          ? Image.asset('assets/bb_b_wings.png', width: 200, height: 200)
-          : Text(_petEmoji, style: const TextStyle(fontSize: 140));
+      centerContent = Image.asset(
+        _petSpritePath(pet.type, PetLevel.baby),
+        width: 200,
+        height: 200,
+      );
     } else {
       final stages   = _eggStages();
       final eggImage = Image.asset(
@@ -414,37 +421,27 @@ class _PetScreenState extends State<PetScreen>
   Widget _buildPetSprite(Pet pet, bool isAsleep) {
     return Stack(
       alignment: Alignment.center,
+      clipBehavior: Clip.none,
       children: [
-        pet.type == PetType.bunny
-            ? Opacity(
-                opacity: isAsleep ? 0.6 : 1.0,
-                child: Image.asset(
-                  _bunnySpritePath(pet.level),
-                  width: 350,//160 before
-                  height: 350,//160 before
-                ),
-              )
-            : Text(
-                _petEmoji,
-                style: TextStyle(
-                  fontSize: 120,
-                  color: isAsleep
-                      ? Colors.white.withValues(alpha: 0.6)
-                      : null,
-                ),
-              ),
-
+        Opacity(
+          opacity: isAsleep ? 0.6 : 1.0,
+          child: Image.asset(
+            _petSpritePath(pet.type, pet.level),
+            width: 350,
+            height: 350,
+          ),
+        ),
         // ZZZ animation — only shown while asleep
         if (isAsleep)
           Positioned(
-            top: 0,
-            right: 0,
+            top: -30,
+            right: -30,
             child: FadeTransition(
               opacity: _zzzOpacity,
               child: const Text(
                 'z z z',
                 style: TextStyle(
-                  fontSize: 30,//22 before
+                  fontSize: 40,//22 before
                   color: Colors.white70,
                   fontWeight: FontWeight.w300,
                   letterSpacing: 4,

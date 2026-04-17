@@ -37,24 +37,18 @@ class _StudyScreenState extends State<StudyScreen> {
   int get breakMinutes => selectedMode == TimerMode.short ? 5 : 10;
   int get coinReward => selectedMode == TimerMode.short ? 20 : 40;
 
-  String get _petEmoji {
-    switch (widget.pet.type) {
-      case PetType.bunny: return '🐰';
-      case PetType.cat:   return '🐱';
-      case PetType.deer:  return '🦌';
-    }
-  }
-
   Widget _buildPetSprite() {
-    if (widget.pet.type == PetType.bunny) {
-      final path = switch (widget.pet.level) {
-        PetLevel.baby  => 'assets/bb_b_wings.png',
-        PetLevel.kid   => 'assets/kid_b_wings.png',
-        PetLevel.adult => 'assets/adult_b_wings.png',
-      };
-      return Image.asset(path, width: 200, height: 200);
-    }
-    return Text(_petEmoji, style: const TextStyle(fontSize: 72));
+    final prefix = switch (widget.pet.type) {
+      PetType.bunny => 'b',
+      PetType.cat   => 'cat',
+      PetType.deer  => 'deer',
+    };
+    final path = switch (widget.pet.level) {
+      PetLevel.baby  => 'assets/bb_${prefix}_wings.png',
+      PetLevel.kid   => 'assets/kid_${prefix}_wings.png',
+      PetLevel.adult => 'assets/adult_${prefix}_wings.png',
+    };
+    return Image.asset(path, width: 200, height: 200);
   }
 
   @override
