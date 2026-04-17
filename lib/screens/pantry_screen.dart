@@ -164,7 +164,7 @@ class _FoodSlot extends StatelessWidget {
                     )
                   : Text(
                       food.icon,
-                      style: const TextStyle(fontSize: 20),
+                      style: const TextStyle(fontSize: 65),
                     ),
 
               const SizedBox(height: 4),
@@ -173,7 +173,7 @@ class _FoodSlot extends StatelessWidget {
               Text(
                 food.name,
                 style: const TextStyle(
-                  fontSize: 25,
+                  fontSize: 35,
                   fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
