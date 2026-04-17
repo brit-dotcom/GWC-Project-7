@@ -55,6 +55,16 @@ class _SignupPageState extends State<SignupPage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            Text(
+              'Pomodachi',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                shadows: [Shadow(color: Colors.black26, blurRadius: 6)],
+              ),
+            ),
+            const SizedBox(height: 24),
             TextField(
               controller: emailController,
               style:GoogleFonts.playfairDisplay(),

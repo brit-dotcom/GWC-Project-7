@@ -46,7 +46,20 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 235, 185, 201),
       body: Center(
-        child: Container(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Pomodachi',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                shadows: [Shadow(color: Colors.black26, blurRadius: 6)],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
           width: 300,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -120,6 +133,8 @@ class _LoginPageState extends State<LoginPage> {
             ],
           ),
         ),
+      ],
+    ),
       ),
     );
   }
